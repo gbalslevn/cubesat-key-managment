@@ -33,7 +33,11 @@ EVP_PKEY *get_peerkey(EVP_PKEY *key)
 }
 
 
-
+/** 
+ * Creates diffie-hellman secret based on elliptic curves
+ * 
+ * @param[secret_len] secret_len bytelength for the dh secret, 32 (256 bits) is recommended
+*/ 
 unsigned char *ecdh(size_t *secret_len)
 {
     EVP_PKEY_CTX *pctx, *kctx;
@@ -68,8 +72,7 @@ unsigned char *ecdh(size_t *secret_len)
     if (1 != EVP_PKEY_keygen(kctx, &pkey))
         handleErrors();
 
-    /* Get the peer's public key, and provide the peer with our public key -
-     * how this is done will be specific to your circumstances */
+    /* Get the peer's public key, and provide the peer with our public key. This is simulated for now */
     peerkey = get_peerkey(pkey);
 
     /* Create the context for the shared secret derivation */
@@ -119,7 +122,7 @@ unsigned char *hkdf(unsigned char *secret) {
     EVP_KDF_free(kdf);
 
     *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, SN_sha256, strlen(SN_sha256));
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY, secret, (size_t)6); // The psk
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY, secret, (size_t)10); // The psk
     *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_INFO, "label", (size_t)5); // Info about the protocol can be provided
     *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_SALT, "salt", (size_t)4); // The salt
     *p = OSSL_PARAM_construct_end();
@@ -133,22 +136,25 @@ unsigned char *hkdf(unsigned char *secret) {
     return out;
 }
 
-void print_hex(const char *label, const unsigned char *data, size_t len) {
-    printf("%s: ", label);
-    for (size_t i = 0; i < len; i++) {
-        printf("%02x", data[i]);
-    }
-    printf("\n");
-}
+// void print_hex(const char *label, const unsigned char *data, size_t len) {
+//     printf("%s: ", label);
+//     for (size_t i = 0; i < len; i++) {
+//         printf("%02x", data[i]);
+//     }
+//     printf("\n");
+// }
 
-void psk_dh() {
+/**
+ * Generates a Diffie-Hellman secret key based on a preshared-secret
+ * @param psk a secret
+ * @param out the resulting master secret
+ */
+void psk_dh(const char *psk, unsigned char *out) {
     size_t secret_len = 32; // For a reccomended size of 256 bits
     unsigned char *Z = ecdh(&secret_len);
     // print_hex("Z", Z, secret_len);
     
-    unsigned char PSK[] = "mysecurepsk"; 
-    size_t psk_len = strlen((char *)PSK);
-
+    size_t psk_len = strlen(psk);
     size_t premaster_len = 2 + secret_len + 2 + psk_len; // Memory allocation, 2 for size of secret_len and then the secret_len itself. Same for psk_len.
     unsigned char *premaster_secret = malloc(premaster_len);
 
@@ -169,17 +175,17 @@ void psk_dh() {
     ptr += 2;
 
     // Copy PSK
-    memcpy(ptr, PSK, psk_len);
+    memcpy(ptr, psk, psk_len);
 
     // print_hex("Premaster secret", premaster_secret, premaster_len);
     size_t master_len = KEYSIZE;
     unsigned char *master_secret = hkdf(premaster_secret);
+    memcpy(out, master_secret, KEYSIZE);
     // print_hex("Final key", master_secret, master_len);
     
     // Cleanup
     free(Z);
     free(premaster_secret);
-    free(master_secret);
 }
 
 // int main(int argc, char const *argv[])

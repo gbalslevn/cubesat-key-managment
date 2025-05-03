@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdint.h>
 
+/**
+ * The Delerablée IBBE scheme based on https://www.iacr.org/archive/asiacrypt2007/48330198/48330198.pdf
+ */
+
 /* System parameters */
 typedef struct {
     bn_t gamma;         // Master secret key γ
@@ -244,14 +248,14 @@ int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len,
         uint8_t aes_key[32];
         memcpy(aes_key, key_bytes, 32); // Just takes first 32 bytes, should use KDF, like md_kdf(key, 2 * size, _x, l);
 
-        printf("Derived AES key: ");
-        print_hex(aes_key, 32);
+        // printf("Derived AES key: ");
+        // print_hex(aes_key, 32);
         
         // Store identities
         ct->ids = malloc(num_ids * sizeof(char *));
-        printf("Identities which should be able to decrypt: \n");
+        // printf("Identities which should be able to decrypt: \n");
         for (int i = 0; i < num_ids; i++) {
-            printf("%s\n", ids[i]);
+            // printf("%s\n", ids[i]);
             ct->ids[i] = strdup(ids[i]);
         }
         ct->num_ids = num_ids;
@@ -372,8 +376,8 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
         uint8_t aes_key[32];
         memcpy(aes_key, key_bytes, 32); // Just takes first 32 bytes, should use KDF, like md_kdf(key, 2 * size, _x, l);
 
-        printf("Derived AES key: ");
-        print_hex(aes_key, 32);
+        // printf("Derived AES key: ");
+        // print_hex(aes_key, 32);
         
         // Decrypt message
         *out_len = ct->ct_len - RLC_MD_LEN; // Adjust for your scheme
@@ -404,97 +408,31 @@ end:
     return result;
 }
 
-static int ibbe_test(void) {
-    int code = RLC_ERR;
-    ibbe_params_t params;
-    ibbe_prv_t prv;
-    ibbe_ct_t ct;
-    uint8_t msg[] = "Hello IBBE!";
-    // rand_bytes(msg, sizeof(msg)); // For generating random message
-    size_t msg_len = strlen((char *)msg);
-    uint8_t out[msg_len + 16]; // For storing derived plaintext
-    size_t out_len = sizeof(out);
-    char *ids[] = {"Alice", "Bob", "Charlie"};
-    int aliceIsAReceiver = 1; // 1=true, 0=false
+// int main() {
+//     // Initialize RELIC library
+//     if (core_init() != RLC_OK) {
+//         core_clean();
+//         return 1;
+//     }
 
-    RLC_TRY {
-        printf("%s\n", ids[0]);
-        // Setup with security parameter 256 and max 10 users
-        TEST_ASSERT(ibbe_setup(&params, 256, 10) == RLC_OK, end);
-        
-        // Extract private key for Alice
-        TEST_ASSERT(ibbe_extract(&prv, ids[0], &params) == RLC_OK, end);
-        
-        // Encrypt message for all three identities
-        printf("************* ENCRYPT *************\n");
-        if(!aliceIsAReceiver) {
-            ids[0] = "Alese"; // Removing id of Alice so she should not be able to decrypt
-        }
-        TEST_ASSERT(ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params) == RLC_OK, end);
-        printf("msg is: ");
-        print_char(msg, msg_len);
-        printf("ct is: ");
-        print_hex(ct.ct, ct.ct_len);
-        
-        // Alice should be able to decrypt
-        printf("************* ENCRYPT *************\n");
-        TEST_ASSERT(ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params) == RLC_OK, end);
-        printf("recovered plaintext is: ");
-        print_char(out, out_len);
-        
-        // derived plaintext should be the same as the provided message. 
-        TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
-        
-        // Cleanup ciphertext
-        for (int i = 0; i < ct.num_ids; i++) free(ct.ids[i]);
-        free(ct.ids);
-        free(ct.ct);
-    } RLC_CATCH_ANY {
-        RLC_ERROR(end);
-    }
-    code = RLC_OK;
+//     // Setup pairing parameters
+//     if (pc_param_set_any() != RLC_OK) {
+//         core_clean();
+//         return 1;
+//     }
 
-end:
-    // Cleanup params
-    bn_free(params.gamma);
-    bn_free(params.p);
-    g1_free(params.g);
-    g2_free(params.h);
-    gt_free(params.v);
-    for (int i = 0; i <= params.max_users; i++) g2_free(params.h_gamma[i]);
-    free(params.h_gamma);
-    
-    // Cleanup private key
-    g1_free(prv.sk);
-    
-    return code;
-}
+//     if (ibbe_test() != RLC_OK) {
+//         printf("IBBE test failed!\n");
+//         core_clean();
+//         return 1;
+//     }
 
-int main(void) {
-    // Initialize RELIC library
-    if (core_init() != RLC_OK) {
-        core_clean();
-        return 1;
-    }
+//     printf("IBBE test passed successfully!\n");
+//     // Clean up RELIC
+//     core_clean();
+//     return 0;
+// }
 
-    // Setup pairing parameters
-    if (pc_param_set_any() != RLC_OK) {
-        core_clean();
-        return 1;
-    }
-
-    if (ibbe_test() != RLC_OK) {
-        printf("IBBE test failed!\n");
-        core_clean();
-        return 1;
-    }
-
-    printf("IBBE test passed successfully!\n");
-    // Clean up RELIC
-    core_clean();
-    return 0;
-}
-
-// gcc -o ibbe ibbe.c -I ../../relic-0.7.0/include -I../relic-target/include ../relic-target/lib/librelic_s.a && ./ibbe
+// gcc -o ibbe ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
 
 
