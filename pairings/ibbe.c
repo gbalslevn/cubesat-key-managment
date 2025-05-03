@@ -64,7 +64,7 @@ uint8_t *hash_to_zp(const char *id, const bn_t p) {
     
     // Hash the ID using SHA-256
     md_map_sh256(digest, (uint8_t *)id, strlen(id));
-    
+
     // Convert digest to a bn_t to do mod p
     bn_t h;
     bn_null(h);
@@ -99,7 +99,7 @@ int ibbe_setup(ibbe_params_t *params, int lambda, int m) {
         g2_new(params->h);
         gt_new(params->v);
         
-        // Get group order
+        // Get group order 
         pc_get_ord(params->p);
         if (!bn_is_prime(params->p)) {
             printf("Error: Group order is not prime!\n");
@@ -167,8 +167,6 @@ int ibbe_extract(ibbe_prv_t *prv, const char *id, const ibbe_params_t *params) {
         bn_add(gamma_plus_h, params->gamma, h_id);
         
         // Compute 1/(γ + H(ID)) mod p
-        // bn_mod(inv, gamma_plus_h, params->p);
-        // bn_gcd_ext(inv, inv, NULL, inv, params->p);
         bn_mod_inv(inv, gamma_plus_h, params->p);
         
         // Compute g^{1/(γ+H(ID))}
@@ -226,7 +224,7 @@ int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len,
             uint8_t *hash = params->H(ids[i], params->p);
             bn_read_bin(h_id, hash, RLC_FP_BYTES);
             free(hash);
-            
+         
             bn_add(temp, params->gamma, h_id);
             bn_mul(product, product, temp);
         }
@@ -251,12 +249,14 @@ int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len,
         
         // Store identities
         ct->ids = malloc(num_ids * sizeof(char *));
+        printf("Identities which should be able to decrypt: \n");
         for (int i = 0; i < num_ids; i++) {
+            printf("%s\n", ids[i]);
             ct->ids[i] = strdup(ids[i]);
         }
         ct->num_ids = num_ids;
         
-        ct->ct_len = msg_len + RLC_MD_LEN; // Adjust for your encryption scheme
+        ct->ct_len = msg_len + RLC_MD_LEN; 
         ct->ct = malloc(ct->ct_len);
         if (ct->ct == NULL) {
             result = RLC_ERR;
@@ -294,7 +294,10 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
             break;
         }
     }
-    if (recipient_idx == -1) return RLC_ERR;
+    if (recipient_idx == -1) {
+        printf("id '%s' is not on the list of receivers\n", id);
+        return RLC_ERR;  
+    } 
     
     RLC_TRY {
         bn_new(product);
@@ -374,9 +377,8 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
         
         // Decrypt message
         *out_len = ct->ct_len - RLC_MD_LEN; // Adjust for your scheme
-        // use a constant IV
+        // use a constant IV for testing
         bc_aes_cbc_dec(out, out_len, ct->ct, ct->ct_len, aes_key, sizeof(aes_key), iv);
-        //memcpy(out, ct->ct, *out_len); // Simplified
     } RLC_CATCH_ANY {
         result = RLC_ERR;
     }
@@ -408,12 +410,15 @@ static int ibbe_test(void) {
     ibbe_prv_t prv;
     ibbe_ct_t ct;
     uint8_t msg[] = "Hello IBBE!";
+    // rand_bytes(msg, sizeof(msg)); // For generating random message
     size_t msg_len = strlen((char *)msg);
-    uint8_t out[msg_len + 16];
+    uint8_t out[msg_len + 16]; // For storing derived plaintext
     size_t out_len = sizeof(out);
     char *ids[] = {"Alice", "Bob", "Charlie"};
+    int aliceIsAReceiver = 1; // 1=true, 0=false
 
     RLC_TRY {
+        printf("%s\n", ids[0]);
         // Setup with security parameter 256 and max 10 users
         TEST_ASSERT(ibbe_setup(&params, 256, 10) == RLC_OK, end);
         
@@ -421,8 +426,10 @@ static int ibbe_test(void) {
         TEST_ASSERT(ibbe_extract(&prv, ids[0], &params) == RLC_OK, end);
         
         // Encrypt message for all three identities
-        // rand_bytes(msg, sizeof(msg)); // For generating random message
         printf("************* ENCRYPT *************\n");
+        if(!aliceIsAReceiver) {
+            ids[0] = "Alese"; // Removing id of Alice so she should not be able to decrypt
+        }
         TEST_ASSERT(ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params) == RLC_OK, end);
         printf("msg is: ");
         print_char(msg, msg_len);
@@ -431,10 +438,11 @@ static int ibbe_test(void) {
         
         // Alice should be able to decrypt
         printf("************* ENCRYPT *************\n");
-        TEST_ASSERT(ibbe_decrypt(out, &out_len, &ct, &prv, ids[0], &params) == RLC_OK, end);
+        TEST_ASSERT(ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params) == RLC_OK, end);
         printf("recovered plaintext is: ");
         print_char(out, out_len);
         
+        // derived plaintext should be the same as the provided message. 
         TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
         
         // Cleanup ciphertext
@@ -449,6 +457,7 @@ static int ibbe_test(void) {
 end:
     // Cleanup params
     bn_free(params.gamma);
+    bn_free(params.p);
     g1_free(params.g);
     g2_free(params.h);
     gt_free(params.v);
