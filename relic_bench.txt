@@ -1,0 +1,208 @@
+** Allocation mode: AUTO
+
+** Arithmetic backend: easy
+
+** Benchmarking options:
+   Number of times: 10000
+
+** Multiple precision module options:
+   Precision: 1024 bits, 16 words
+   Arithmetic method: COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
+
+** Prime field module options:
+   Prime size: 256 bits, 4 words
+   Arithmetic method: INTEG;INTEG;INTEG;MONTY;MONTY;JMPDS;SLIDE
+
+** Prime field extension module options:
+   Arithmetic method: INTEG;INTEG;LAZYR
+
+** Prime elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER;SSWUM
+
+** Bilinear pairing module options:
+   Arithmetic method: LAZYR;OATEP
+
+** Binary field module options:
+   Polynomial size: 283 bits, 5 words
+   Arithmetic method: LODAH;QUICK;QUICK;QUICK;QUICK;QUICK;EXGCD;SLIDE;QUICK
+
+** Binary elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Elliptic Curve Cryptography module options:
+   Arithmetic method: PRIME
+
+** Edwards Curve Cryptography module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Hash function module options:
+   Chosen method: SH256
+
+
+-- Benchmarks for the CP module:
+
+-- Protocols based on integer factorization:
+
+BENCH: cp_rsa_gen                       = 17760 microsec
+BENCH: cp_rsa_enc                       = 29 microsec
+BENCH: cp_rsa_dec                       = 716 microsec
+BENCH: cp_rsa_sig (h = 0)               = 716 microsec
+BENCH: cp_rsa_sig (h = 1)               = 717 microsec
+BENCH: cp_rsa_ver (h = 0)               = 25 microsec
+BENCH: cp_rsa_ver (h = 1)               = 24 microsec
+BENCH: cp_rabin_gen                     = 48520 microsec
+BENCH: cp_rabin_enc                     = 2 microsec
+BENCH: cp_rabin_dec                     = 727 microsec
+BENCH: cp_phpe_gen                      = 9394 microsec
+BENCH: cp_phpe_enc                      = 562 microsec
+BENCH: cp_phpe_add                      = 2 microsec
+BENCH: cp_phpe_dec                      = 372 microsec
+BENCH: cp_shpe_gen                      = 9030 microsec
+BENCH: cp_shpe_enc                      = 1103 microsec
+BENCH: cp_shpe_enc_prv                  = 119 microsec
+BENCH: cp_shpe_dec (1)                  = 156 microsec
+BENCH: cp_shpe_dec (2)                  = 156 microsec
+BENCH: cp_ghpe_gen                      = 24098 microsec
+BENCH: cp_ghpe_enc (1)                  = 1094 microsec
+BENCH: cp_ghpe_dec (1)                  = 644 microsec
+BENCH: cp_ghpe_gen                      = 14034 microsec
+BENCH: cp_ghpe_enc (2)                  = 892 microsec
+BENCH: cp_ghpe_dec (2)                  = 337 microsec
+BENCH: cp_bdpe_gen                      = 16801 microsec
+BENCH: cp_bdpe_enc                      = 34 microsec
+BENCH: cp_bdpe_dec                      = 3509 microsec
+
+-- Protocols based on elliptic curves:
+
+BENCH: cp_ecdh_gen                      = 206 microsec
+BENCH: cp_ecdh_key                      = 627 microsec
+BENCH: cp_ecmqv_gen                     = 205 microsec
+BENCH: cp_ecmqv_key                     = 923 microsec
+BENCH: cp_ecies_gen                     = 206 microsec
+BENCH: cp_ecies_enc                     = 837 microsec
+BENCH: cp_ecies_dec                     = 629 microsec
+BENCH: cp_ecdsa_gen                     = 206 microsec
+BENCH: cp_ecdsa_sign (h = 0)            = 312 microsec
+BENCH: cp_ecdsa_sign (h = 1)            = 311 microsec
+BENCH: cp_ecdsa_ver (h = 0)             = 1028 microsec
+BENCH: cp_ecdsa_ver (h = 1)             = 1025 microsec
+BENCH: cp_ecss_gen                      = 207 microsec
+BENCH: cp_ecss_sign                     = 207 microsec
+BENCH: cp_ecss_ver                      = 922 microsec
+BENCH: cp_vbnn_gen                      = 206 microsec
+BENCH: cp_vbnn_gen_prv                  = 208 microsec
+BENCH: cp_vbnn_sig                      = 210 microsec
+BENCH: cp_vbnn_ver                      = 1692 microsec
+BENCH: cp_ers_sig                       = 1460 microsec
+BENCH: cp_ers_ver                       = 2050 microsec
+BENCH: cp_ers_ext                       = 1408 microsec
+( 1 exts) BENCH: cp_ers_ver                       = 3978 microsec
+( 2 exts) BENCH: cp_ers_ver                       = 7646 microsec
+( 4 exts) BENCH: cp_ers_ver                       = 15019 microsec
+( 8 exts) BENCH: cp_ers_ver                       = 29941 microsec
+(16 exts) BENCH: cp_ers_ver                       = 59782 microsec
+(32 exts) BENCH: cp_ers_ver                       = 118910 microsec
+(64 exts) BENCH: cp_ers_ver                       = 185766 microsec
+BENCH: cp_smlers_sig                    = 4043 microsec
+BENCH: cp_smlers_ver                    = 4286 microsec
+BENCH: cp_smlers_ext                    = 3371 microsec
+( 1 exts) BENCH: cp_smlers_ver                    = 7997 microsec
+( 2 exts) BENCH: cp_smlers_ver                    = 15451 microsec
+( 4 exts) BENCH: cp_smlers_ver                    = 30203 microsec
+( 8 exts) BENCH: cp_smlers_ver                    = 59763 microsec
+(16 exts) BENCH: cp_smlers_ver                    = 119065 microsec
+(32 exts) BENCH: cp_smlers_ver                    = 237659 microsec
+(64 exts) BENCH: cp_smlers_ver                    = 371522 microsec
+BENCH: cp_etrs_sig                      = 5779 microsec
+BENCH: cp_etrs_ver                      = 9701 microsec
+BENCH: cp_etrs_ext                      = 1175 microsec
+BENCH: cp_etrs_uni                      = 71923 microsec
+( 1 exts) BENCH: cp_etrs_ver                      = 11286 microsec
+( 2 exts) BENCH: cp_etrs_ver                      = 14633 microsec
+( 4 exts) BENCH: cp_etrs_ver                      = 21113 microsec
+( 8 exts) BENCH: cp_etrs_ver                      = 34459 microsec
+
+-- Protocols based on pairings:
+
+BENCH: cp_pdpub_gen                     = 3836 microsec
+BENCH: cp_pdpub_ask                     = 972 microsec
+BENCH: cp_pdpub_ans                     = 6500 microsec
+BENCH: cp_pdpub_ver                     = 1157 microsec
+BENCH: cp_lvpub_gen                     = 3837 microsec
+BENCH: cp_lvpub_ask                     = 950 microsec
+BENCH: cp_lvpub_ans                     = 4907 microsec
+BENCH: cp_lvpub_ver                     = 718 microsec
+BENCH: cp_pdprv_gen                     = 9428 microsec
+BENCH: cp_pdprv_ask                     = 2985 microsec
+BENCH: cp_pdprv_ans                     = 8792 microsec
+BENCH: cp_pdprv_ver                     = 1552 microsec
+BENCH: cp_lvprv_gen                     = 9451 microsec
+BENCH: cp_lvprv_ask                     = 3024 microsec
+BENCH: cp_lvprv_ans                     = 7150 microsec
+BENCH: cp_lvprv_ver                     = 1135 microsec
+BENCH: cp_sokaka_gen                    = 2 microsec
+BENCH: cp_sokaka_gen_prv                = 2762 microsec
+BENCH: cp_sokaka_key (g1)               = 2553 microsec
+BENCH: cp_sokaka_key (g2)               = 3204 microsec
+BENCH: cp_ibe_gen                       = 189 microsec
+BENCH: cp_ibe_gen_prv                   = 1928 microsec
+BENCH: cp_ibe_enc                       = 4164 microsec
+BENCH: cp_ibe_dec                       = 0 microsec
+BENCH: cp_bgn_gen                       = 2168 microsec
+BENCH: cp_bgn_enc1                      = 1133 microsec
+BENCH: cp_bgn_dec1 (10)                 = 1772 microsec
+BENCH: cp_bgn_enc2                      = 1899 microsec
+BENCH: cp_bgn_dec2 (10)                 = 2566 microsec
+BENCH: cp_bgn_mul                       = 8603 microsec
+BENCH: cp_bgn_dec (100)                 = 5820 microsec
+BENCH: cp_bgn_add                       = 22 microsec
+BENCH: cp_bls_gen                       = 527 microsec
+BENCH: cp_bls_sign                      = 913 microsec
+BENCH: cp_bls_ver                       = 3438 microsec
+BENCH: cp_bbs_gen                       = 523 microsec
+BENCH: cp_bbs_sign (h = 0)              = 292 microsec
+BENCH: cp_bbs_sign (h = 1)              = 290 microsec
+BENCH: cp_bbs_ver (h = 0)               = 2752 microsec
+BENCH: cp_bbs_ver (h = 1)               = 2760 microsec
+BENCH: cp_cls_gen                       = 1053 microsec
+BENCH: cp_cls_sig                       = 1167 microsec
+BENCH: cp_cls_ver                       = 5592 microsec
+BENCH: cp_cli_gen                       = 1583 microsec
+BENCH: cp_cli_sig                       = 3280 microsec
+BENCH: cp_cli_ver                       = 11566 microsec
+BENCH: cp_clb_gen (5)                   = 3162 microsec
+BENCH: cp_clb_sig (5)                   = 7147 microsec
+BENCH: cp_clb_ver (5)                   = 27621 microsec
+BENCH: cp_pss_gen                       = 2315 microsec
+BENCH: cp_pss_sig                       = 675 microsec
+BENCH: cp_pss_ver                       = 3658 microsec
+BENCH: cp_psb_gen (10)                  = 10232 microsec
+BENCH: cp_psb_sig (10)                  = 685 microsec
+BENCH: cp_psb_ver (10)                  = 7957 microsec
+BENCH: cp_mpss_gen                      = 4075 microsec
+BENCH: cp_mpss_bct                      = 228 microsec
+BENCH: cp_mpss_sig                      = 734 microsec
+BENCH: cp_mpss_ver                      = 5480 microsec
+BENCH: cp_mpsb_gen (10)                 = 19955 microsec
+BENCH: cp_mpsb_bct (10)                 = 1253 microsec
+BENCH: cp_mpsb_sig (10)                 = 742 microsec
+BENCH: cp_mpsb_ver (10)                 = 9830 microsec
+BENCH: cp_mpsb_ver (10,sk)              = 5465 microsec
+BENCH: cp_zss_gen                       = 186 microsec
+BENCH: cp_zss_sig (h = 0)               = 618 microsec
+BENCH: cp_zss_sig (h = 1)               = 618 microsec
+BENCH: cp_zss_ver (h = 0)               = 2396 microsec
+BENCH: cp_zss_ver (h = 1)               = 2392 microsec
+BENCH: cp_cmlhs_gen (ecdsa)             = 15010 microsec
+BENCH: cp_cmlhs_sig (ecdsa)             = 3686 microsec
+BENCH: cp_cmlhs_fun                     = 722 microsec
+BENCH: cp_cmlhs_evl                     = 1615 microsec
+BENCH: cp_cmlhs_ver (ecdsa)             = 6877 microsec
+BENCH: cp_cmlhs_off                     = 3680 microsec
+BENCH: cp_cmlhs_onv (ecdsa)             = 3193 microsec
+BENCH: cp_cmlhs_gen (bls)               = 15760 microsec
+BENCH: cp_cmlhs_sig (bls)               = 4302 microsec
+BENCH: cp_cmlhs_fun                     = 723 microsec
+BENCH: cp_cmlhs_evl                     = 1614 microsec
+BENCH: cp_cmlhs_ver (bls)               = 9416 microsec
+BENCH: cp_cmlhs_off                     = 3677 microsec
