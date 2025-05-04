@@ -3,7 +3,6 @@
 #include <math.h>
 #include <unistd.h>
 #include <sys/resource.h>
-#include "pskdh.h"
 
 void test_function()
 {
@@ -17,7 +16,7 @@ int main()
     clock_gettime(CLOCK_MONOTONIC, &start);
 
     // sleep(5);
-    psk_dh();
+    // psk_dh();
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;

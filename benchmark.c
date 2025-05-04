@@ -9,7 +9,8 @@
 #include "pskdh.h"
 #include "ibbe.h"
 
-static int hkdf_test(void) {
+static int hkdf_test(void)
+{
 	int code = RLC_ERR;
 	unsigned char premaster_secret[] = "secretkey";
 
@@ -22,7 +23,7 @@ static int hkdf_test(void) {
 			TEST_ASSERT(master_secret != NULL, end);
 		}
 		TEST_END;
-		
+
 		BENCH_RUN("hkdf")
 		{
 			BENCH_ADD(hkdf(premaster_secret));
@@ -151,37 +152,38 @@ static int ibe_test(void)
 		BENCH_RUN("master_ibe_gen")
 		{
 			BENCH_ADD(cp_ibe_gen(s, pub));
-			// bench_init()
+			// bench_init();
 			// bench_overhead();
 			// bench_clean();
 		}
 		BENCH_END;
 
-		BENCH_RUN("upk_ibe_gen")
+		BENCH_RUN("usk_ibe_gen")
 		{
 			BENCH_ADD(cp_ibe_gen_prv(prv, id, s));
 		}
 		BENCH_END;
 
-		// BENCH_RUN("cp_ibe_enc")
-		// {
-		// 	in_len = sizeof(in);
-		// 	out_len = in_len + 2 * RLC_FP_BYTES + 1;
-		// 	rand_bytes(in, sizeof(in));
-		// 	BENCH_ADD(cp_ibe_enc(out, &out_len, in, in_len, id, pub));
-		// 	cp_ibe_dec(out, &out_len, out, out_len, prv);
-		// }
-		// BENCH_END;
+		BENCH_RUN("cp_ibe_enc")
+		{
+			il = sizeof(in);
+			ol = il + 2 * RLC_FP_BYTES + 1;
+			rand_bytes(in, sizeof(in));
+			BENCH_ADD(cp_ibe_enc(out, &ol, in, il, id, pub));
+		}
+		BENCH_END;
 
-		// BENCH_RUN("cp_ibe_dec")
-		// {
-		// 	in_len = sizeof(in);
-		// 	out_len = in_len + 2 * RLC_FP_BYTES + 1;
-		// 	rand_bytes(in, sizeof(in));
-		// 	cp_ibe_enc(out, &out_len, in, in_len, id, pub);
-		// 	BENCH_ADD(cp_ibe_dec(out, &out_len, out, out_len, prv));
-		// }
-		// BENCH_END;
+		BENCH_RUN("cp_ibe_dec")
+		{
+			il = sizeof(in);
+			ol = il + 2 * RLC_FP_BYTES + 1;
+			uint8_t plaintext[il];
+			size_t plaintext_len = il;
+			rand_bytes(in, sizeof(in));
+			cp_ibe_enc(out, &ol, in, il, id, pub);
+			BENCH_ADD(cp_ibe_dec(plaintext, &plaintext_len, out, ol, prv));
+		}
+		BENCH_END;
 	}
 	RLC_CATCH_ANY
 	{
@@ -369,6 +371,7 @@ int main(void)
 	}
 
 	// The bench runs methods 10000 times and takes the average.
+	conf_print();
 
 	util_banner("Testing protocols:\n", 0);
 	if (hkdf_test() != 0)
