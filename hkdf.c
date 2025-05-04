@@ -41,3 +41,7 @@ int main()
 // For at compile og køre det,
 // gcc -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -o bin/hkdf hkdf.c -lcrypto && ./hkdf
 
+
+// For rasperry pi
+// gcc -o hkdf hkdf.c -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./hkdf
+

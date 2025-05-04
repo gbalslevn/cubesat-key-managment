@@ -435,4 +435,6 @@ end:
 
 // gcc -o bin/ibbe ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
 
+// For linux
+// gcc -o ibbe ibbe.c -I ../relic/include -I ../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./ibbe
 

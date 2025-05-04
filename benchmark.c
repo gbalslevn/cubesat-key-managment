@@ -9,7 +9,7 @@
 #include "pskdh.h"
 #include "ibbe.h"
 
-static int hkdf_test(void)
+int hkdf_test(void)
 {
 	int code = RLC_ERR;
 	unsigned char premaster_secret[] = "secretkey";
@@ -40,7 +40,7 @@ end:
 	return code;
 }
 
-static int pskdh_test(void)
+int pskdh_test(void)
 {
 	int code = RLC_ERR;
 	const char *psk = "asecretpsk";
@@ -109,7 +109,7 @@ end:
 	return code;
 }
 
-static int ibe_test(void)
+int ibe_test(void)
 {
 	int code = RLC_ERR;
 	bn_t s;
@@ -198,7 +198,7 @@ end:
 	return code;
 }
 
-static int bls_test(void)
+int bls_test(void)
 {
 	int code = RLC_ERR;
 	bn_t d;
@@ -263,7 +263,7 @@ end:
 	return code;
 }
 
-static int ibbe_test()
+int ibbe_test()
 {
 	int code = RLC_ERR;
 	ibbe_params_t params;
@@ -418,6 +418,13 @@ int main(void)
 // For testing the c test files from the relic library has been compiled into runnables in relic-target/bin
 
 // For including a file like pskdh you would need to do,
-// gcc -o benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -L/opt/homebrew/lib -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c && ./benchmark
+// gcc -o benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c && ./benchmark
+// gcc -o bin/benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./bin/benchmark
 
-// gcc -o bin/benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -L/opt/homebrew/lib -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./benchmark
+// gcc -o benchmark benchmark.c -I ../relic/include -I ../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./benchmark
+
+// For linux
+// gcc -o benchmark benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./benchmark
+
+
+
