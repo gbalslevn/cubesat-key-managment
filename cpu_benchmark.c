@@ -30,6 +30,6 @@ int main()
 
 
 // To run it
-// gcc pskdh.c -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto cpu_benchmark.c -o cpu_benchmark && ./cpu_benchmark
+// gcc pskdh.c -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto cpu_benchmark.c -o bin/cpu_benchmark && ./cpu_benchmark
 
 // Should use make to compile the program more humanly. 

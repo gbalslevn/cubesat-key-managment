@@ -39,5 +39,5 @@ int main()
 }
 
 // For at compile og køre det,
-// gcc -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -o hkdf hkdf.c -lcrypto && ./hkdf
+// gcc -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -o bin/hkdf hkdf.c -lcrypto && ./hkdf
 

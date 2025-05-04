@@ -433,6 +433,6 @@ end:
 //     return 0;
 // }
 
-// gcc -o ibbe ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
+// gcc -o bin/ibbe ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
 
 

@@ -194,4 +194,4 @@ void psk_dh(const char *psk, unsigned char *out) {
 //     return 0;
 // }
 
-// gcc -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -o pskdh pskdh.c -lcrypto && ./pskdh
+// gcc -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -o bin/pskdh pskdh.c -lcrypto && ./pskdh

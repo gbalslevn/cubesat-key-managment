@@ -420,4 +420,4 @@ int main(void)
 // For including a file like pskdh you would need to do,
 // gcc -o benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -L/opt/homebrew/lib -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c && ./benchmark
 
-// gcc -o benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -L/opt/homebrew/lib -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./benchmark
+// gcc -o bin/benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -L/opt/homebrew/lib -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./benchmark
