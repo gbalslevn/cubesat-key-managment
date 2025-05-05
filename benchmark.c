@@ -335,11 +335,6 @@ int ibbe_test()
 			BENCH_ADD(ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params));
 		}
 		BENCH_END;
-		// Cleanup ciphertext
-		for (int i = 0; i < ct.num_ids; i++)
-			free(ct.ids[i]);
-		free(ct.ids);
-		free(ct.ct);
 	}
 	RLC_CATCH_ANY
 	{
@@ -348,6 +343,11 @@ int ibbe_test()
 	code = RLC_OK;
 
 end:
+	// Cleanup ciphertext
+	for (int i = 0; i < ct.num_ids; i++)
+		free(ct.ids[i]);
+	free(ct.ids);
+	free(ct.ct);
 	// Cleanup params
 	bn_free(params.gamma);
 	bn_free(params.p);
@@ -372,7 +372,6 @@ int main(void)
 		return 1;
 	}
 
-	// The bench runs methods 10000 times and takes the average.
 	conf_print();
 
 	util_banner("Testing protocols:\n", 0);
@@ -402,11 +401,12 @@ int main(void)
 			core_clean();
 			return 1;
 		}
-	}
-	if (ibbe_test() != RLC_OK)
-	{
-		core_clean();
-		return 1;
+		
+		if (ibbe_test() != RLC_OK)
+		{
+			core_clean();
+			return 1;
+		}
 	}
 
 	core_clean();
@@ -427,6 +427,3 @@ int main(void)
 
 // For linux
 // gcc -o benchmark benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./benchmark
-
-
-

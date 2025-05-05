@@ -22,6 +22,14 @@ static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
     return syscall(__NR_perf_event_open, pe, pid, cpu, group_fd, flags);
 }
 
+/** Get peak memory held in physical RAM (in kilobytes) for the current process */
+long get_mem_usage()
+{
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss;
+}
+
 void measure_cycles(const char *name, void (*func)(), int runs)
 {
     struct perf_event_attr pe = {0};
@@ -57,12 +65,24 @@ void measure_cycles(const char *name, void (*func)(), int runs)
     close(fd);
 }
 
-/* ru_maxrss is maximum memory held in physical RAM (in kilobytes) */
-long get_mem_usage()
+/**
+ * Measures a methods average CPU cycles and peak RAM usage after 'runs' iterations
+ */
+void measure_method(const char *name, void (*func)(), int runs)
 {
-    struct rusage usage;
-    getrusage(RUSAGE_SELF, &usage);
-    return usage.ru_maxrss;
+    pid_t pid = fork(); // starts new process
+    if (pid == 0)
+    {
+        long initial_usage = get_mem_usage();
+        measure_cycles(name, func, runs);
+        long usage = get_mem_usage() - initial_usage;
+        printf("%s: %ld Kb RAM usage\n", name, usage);
+        exit(0);
+    }
+    else
+    {
+        waitpid(pid, NULL, 0); // Wait for child
+    }
 }
 
 void hkdf_test()
@@ -156,27 +176,16 @@ void ibbe_test()
     uint8_t out[msg_len + 16]; // For storing derived plaintext
     size_t out_len = sizeof(out);
     char *ids[] = {"Alice", "Bob", "Charlie"};
-    int aliceIsAReceiver = 1; // 1=true, 0=false
 
-    // Setup with security parameter 256 and max 10 users
     ibbe_setup(&params, 256, 10);
-    // Extract private key for Alice
     ibbe_extract(&prv, ids[0], &params);
-    if (!aliceIsAReceiver)
-    {
-        ids[0] = "Alese"; // Removing id of Alice so she should not be able to decrypt
-    }
-    // Encrypt message for all three identities
     ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params);
     ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params);
 
-    // Cleanup ciphertext
     for (int i = 0; i < ct.num_ids; i++)
         free(ct.ids[i]);
     free(ct.ids);
     free(ct.ct);
-
-    // Cleanup params
     bn_free(params.gamma);
     bn_free(params.p);
     g1_free(params.g);
@@ -185,8 +194,6 @@ void ibbe_test()
     for (int i = 0; i <= params.max_users; i++)
         g2_free(params.h_gamma[i]);
     free(params.h_gamma);
-
-    // Cleanup private key
     g1_free(prv.sk);
 }
 
@@ -197,22 +204,16 @@ int main(void)
         core_clean();
         return 1;
     }
-    long baseline_mem_usage = get_mem_usage();
 
-    printf("**** Average CPU cycles and max RAM usage for each method in %d runs ****\n", DEFAULT_RUNS);
-    measure_cycles("HKDF", hkdf_test, DEFAULT_RUNS);
-    printf("HKDF: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
-    measure_cycles("PSK-DH", pskdh_test, DEFAULT_RUNS);
-    printf("PSK-DH: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+    // printf("**** Average CPU cycles and max RAM usage for each method in %d runs ****\n", DEFAULT_RUNS);
+    measure_method("HKDF", hkdf_test, DEFAULT_RUNS);
+    measure_method("PSK-DH", pskdh_test, DEFAULT_RUNS);
 
-        if (pc_param_set_any() == RLC_OK)
+    if (pc_param_set_any() == RLC_OK)
     {
-        measure_cycles("IBE", ibe_test, DEFAULT_RUNS);
-        printf("IBE: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
-        measure_cycles("BLS", bls_test, DEFAULT_RUNS);
-        printf("BLS: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
-        measure_cycles("IBBE", ibbe_test, DEFAULT_RUNS);
-        printf("IBBE: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+        measure_method("IBE", ibe_test, DEFAULT_RUNS);
+        measure_method("BLS", bls_test, DEFAULT_RUNS);
+        measure_method("IBBE", ibbe_test, DEFAULT_RUNS);
     }
     return 0;
 }
@@ -221,3 +222,59 @@ int main(void)
 
 // For linux
 // sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto
+
+
+
+
+
+// Tried to divide the ibbe method into different parts so i could measure each ram usage. It did not work and seemed to not be able to encrypt and decrpyt. 
+// Decided to keep it simple and just measure the whole ibbe_test and then estimate CPU and RAM usage based on time it takes to finish the method. 
+// ibbe_params_t params;
+// ibbe_prv_t prv;
+// uint8_t msg[] = "Hello IBBE!";
+// ibbe_ct_t ct;
+// size_t msg_len;
+// char *ids[] = {"Alice", "Bob", "Charlie"};
+// uint8_t out[sizeof(ct)]; // For storing derived plaintext
+// size_t out_len = sizeof(out);
+
+// void ibbe_setup_test()
+// {
+//     ibbe_setup(&params, 256, 10);
+// }
+
+// void ibbe_extract_test()
+// {
+//     ibbe_extract(&prv, ids[0], &params);
+// }
+// void ibbe_encrypt_test()
+// {
+//     msg_len = strlen((char *)msg);
+//     ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params);
+// }
+
+// void ibbe_decrypt_test()
+// {
+//     ibbe_decrypt(out, &out_len, &ct, &prv, ids[0], &params);
+// }
+
+// void ibbe_clean()
+// {
+//     // Cleanup ciphertext
+//     for (int i = 0; i < ct.num_ids; i++)
+//         free(ct.ids[i]);
+//     free(ct.ids);
+//     free(ct.ct);
+//     // Cleanup params
+//     bn_free(params.gamma);
+//     bn_free(params.p);
+//     g1_free(params.g);
+//     g2_free(params.h);
+//     gt_free(params.v);
+//     for (int i = 0; i <= params.max_users; i++)
+//         g2_free(params.h_gamma[i]);
+//     free(params.h_gamma);
+
+//     // Cleanup private key
+//     g1_free(prv.sk);
+// }
