@@ -12,6 +12,7 @@
 #include <sys/syscall.h>
 #include <sys/ioctl.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
 
 // Amount of times the measurement of CPU cycles for each method is repeated.
 static int DEFAULT_RUNS = 1000;
@@ -23,7 +24,7 @@ static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
 }
 
 /** Get peak memory held in physical RAM (in kilobytes) for the current process */
-long get_mem_usage()
+long get_peak_mem_usage()
 {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
@@ -70,13 +71,11 @@ void measure_cycles(const char *name, void (*func)(), int runs)
  */
 void measure_method(const char *name, void (*func)(), int runs)
 {
-    pid_t pid = fork(); // starts new process
+    pid_t pid = fork(); // starts new process to reset mem usage
     if (pid == 0)
     {
-        long initial_usage = get_mem_usage();
         measure_cycles(name, func, runs);
-        long usage = get_mem_usage() - initial_usage;
-        printf("%s: %ld Kb RAM usage\n", name, usage);
+        printf("%s: %ld Kb RAM usage\n", name, get_peak_mem_usage());
         exit(0);
     }
     else
@@ -229,6 +228,9 @@ int main(void)
 
 // Tried to divide the ibbe method into different parts so i could measure each ram usage. It did not work and seemed to not be able to encrypt and decrpyt. 
 // Decided to keep it simple and just measure the whole ibbe_test and then estimate CPU and RAM usage based on time it takes to finish the method. 
+// The peak RAM is okay to measure for all methods (like ibbe_test) and not child methods (like ibbe_extract) and not for an individual one. We can argue that you need at least this amount of RAM to implement the protocol on a device. 
+
+// 
 // ibbe_params_t params;
 // ibbe_prv_t prv;
 // uint8_t msg[] = "Hello IBBE!";
