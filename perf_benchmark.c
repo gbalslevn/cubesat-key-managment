@@ -1,13 +1,50 @@
 /**
- * Tests and benchmarking of various cryptographic protocols.
+ * Benchmarking using the linux tool perf
  */
 
 #include <stdio.h>
-
 #include "relic.h"
 #include "relic_test.h"
 #include "pskdh.h"
 #include "ibbe.h"
+#include <linux/perf_event.h>
+#include <unistd.h>
+
+static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
+                           int cpu, int group_fd, unsigned long flags) {
+    return syscall(__NR_perf_event_open, pe, pid, cpu, group_fd, flags);
+}
+
+void measure_cycles(const char *name, void (*func)()) {
+    struct perf_event_attr pe = {0};
+    long long count;
+    int fd;
+
+    pe.type = PERF_TYPE_HARDWARE;
+    pe.size = sizeof(pe);
+    pe.config = PERF_COUNT_HW_CPU_CYCLES;
+    pe.disabled = 1;
+    pe.exclude_kernel = 1;
+    pe.exclude_hv = 1;
+
+    fd = perf_event_open(&pe, 0, -1, -1, 0);
+    if (fd == -1) {
+        perror("perf_event_open failed");
+        return;
+    }
+
+    ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+
+    // Run the function
+    func();
+
+    ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+    read(fd, &count, sizeof(count));
+
+    printf("%s: %lld CPU cycles\n", name, count);
+    close(fd);
+}
 
 void hkdf_test()
 {
@@ -141,14 +178,14 @@ int main(void)
         core_clean();
         return 1;
     }
-    hkdf_test();
-    pskdh_test();
-    if (pc_param_set_any() == RLC_OK)
-    { // Configures some set of pairing-friendly curve parameters for the current security level.
-        ibe_test();
-        bls_test();
-        ibbe_test();
-    }
+    measure_cycles("HKDF test", hkdf_test);
+    measure_cycles("PSK-DH test", pskdh_test);
+
+    if (pc_param_set_any() == RLC_OK) {
+        measure_cycles("IBE test", ibe_test);
+        measure_cycles("BLS test", bls_test);
+        measure_cycles("IBBE test", ibbe_test);
+    } 
     return 0;
 }
 
