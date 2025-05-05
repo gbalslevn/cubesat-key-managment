@@ -9,13 +9,17 @@
 #include "ibbe.h"
 #include <linux/perf_event.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/ioctl.h>
 
 static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
-                           int cpu, int group_fd, unsigned long flags) {
+                            int cpu, int group_fd, unsigned long flags)
+{
     return syscall(__NR_perf_event_open, pe, pid, cpu, group_fd, flags);
 }
 
-void measure_cycles(const char *name, void (*func)()) {
+void measure_cycles(const char *name, void (*func)(), int runs)
+{
     struct perf_event_attr pe = {0};
     long long count;
     int fd;
@@ -28,7 +32,8 @@ void measure_cycles(const char *name, void (*func)()) {
     pe.exclude_hv = 1;
 
     fd = perf_event_open(&pe, 0, -1, -1, 0);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         perror("perf_event_open failed");
         return;
     }
@@ -36,13 +41,15 @@ void measure_cycles(const char *name, void (*func)()) {
     ioctl(fd, PERF_EVENT_IOC_RESET, 0);
     ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
 
-    // Run the function
-    func();
+    for (size_t i = 0; i < runs; i++)
+    {
+        func();
+    }
 
     ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
     read(fd, &count, sizeof(count));
 
-    printf("%s: %lld CPU cycles\n", name, count);
+    printf("%s: %lld CPU cycles\n", name, count / runs);
     close(fd);
 }
 
@@ -178,18 +185,21 @@ int main(void)
         core_clean();
         return 1;
     }
-    measure_cycles("HKDF test", hkdf_test);
-    measure_cycles("PSK-DH test", pskdh_test);
+    int runs = 1000;
+    printf("**** Average CPU cycles for each method in %d runs ****\n", runs);
+    measure_cycles("HKDF test", hkdf_test, runs);
+    measure_cycles("PSK-DH test", pskdh_test, runs);
 
-    if (pc_param_set_any() == RLC_OK) {
-        measure_cycles("IBE test", ibe_test);
-        measure_cycles("BLS test", bls_test);
-        measure_cycles("IBBE test", ibbe_test);
-    } 
+    if (pc_param_set_any() == RLC_OK)
+    {
+        measure_cycles("IBE test", ibe_test, runs);
+        measure_cycles("BLS test", bls_test, runs);
+        measure_cycles("IBBE test", ibbe_test, runs);
+    }
     return 0;
 }
 
 // gcc -o bin/perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto && ./bin/perf_benchmark
 
 // For linux
-// gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./perf_benchmark
+// sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto
