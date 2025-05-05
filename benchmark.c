@@ -95,6 +95,8 @@ int pskdh_test(void)
 			BENCH_ADD(psk_dh(psk, pskdh_key));
 		}
 		BENCH_END;
+
+		// ALSO ADD AES ENC/DEC WITH THIS KEY
 	}
 	RLC_CATCH_ANY
 	{
@@ -236,13 +238,13 @@ int bls_test(void)
 
 		BENCH_RUN("cp_bls_sign")
 		{
-			BENCH_ADD(cp_bls_sig(s, m, 5, d));
+			BENCH_ADD(cp_bls_sig(s, m, sizeof(m), d));
 		}
 		BENCH_END;
 
 		BENCH_RUN("cp_bls_ver")
 		{
-			BENCH_ADD(cp_bls_ver(s, m, 5, q));
+			BENCH_ADD(cp_bls_ver(s, m, sizeof(m), q));
 		}
 		BENCH_END;
 

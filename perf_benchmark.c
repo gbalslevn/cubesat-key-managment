@@ -11,6 +11,10 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/ioctl.h>
+#include <sys/resource.h>
+
+// Amount of times the measurement of CPU cycles for each method is repeated.
+static int DEFAULT_RUNS = 1000;
 
 static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
                             int cpu, int group_fd, unsigned long flags)
@@ -51,6 +55,14 @@ void measure_cycles(const char *name, void (*func)(), int runs)
 
     printf("%s: %lld CPU cycles\n", name, count / runs);
     close(fd);
+}
+
+/* ru_maxrss is maximum memory held in physical RAM (in kilobytes) */
+long get_mem_usage()
+{
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss;
 }
 
 void hkdf_test()
@@ -185,16 +197,22 @@ int main(void)
         core_clean();
         return 1;
     }
-    int runs = 1000;
-    printf("**** Average CPU cycles for each method in %d runs ****\n", runs);
-    measure_cycles("HKDF test", hkdf_test, runs);
-    measure_cycles("PSK-DH test", pskdh_test, runs);
+    long baseline_mem_usage = get_mem_usage();
 
-    if (pc_param_set_any() == RLC_OK)
+    printf("**** Average CPU cycles and max RAM usage for each method in %d runs ****\n", DEFAULT_RUNS);
+    measure_cycles("HKDF", hkdf_test, DEFAULT_RUNS);
+    printf("HKDF: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+    measure_cycles("PSK-DH", pskdh_test, DEFAULT_RUNS);
+    printf("PSK-DH: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+
+        if (pc_param_set_any() == RLC_OK)
     {
-        measure_cycles("IBE test", ibe_test, runs);
-        measure_cycles("BLS test", bls_test, runs);
-        measure_cycles("IBBE test", ibbe_test, runs);
+        measure_cycles("IBE", ibe_test, DEFAULT_RUNS);
+        printf("IBE: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+        measure_cycles("BLS", bls_test, DEFAULT_RUNS);
+        printf("BLS: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
+        measure_cycles("IBBE", ibbe_test, DEFAULT_RUNS);
+        printf("IBBE: %ld RAM usage\n", get_mem_usage() - baseline_mem_usage);
     }
     return 0;
 }
