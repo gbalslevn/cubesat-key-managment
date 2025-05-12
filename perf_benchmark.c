@@ -110,10 +110,10 @@ void pskdh_test()
 {
     const char *psk = "asecretpsk";
     const char *anotherpsk = "anotherpsk";
-    size_t expected_key_len = 16;
-    unsigned char *pskdh_key = malloc(16);
-    unsigned char *pskdh_key1 = malloc(16);
-    unsigned char *pskdh_key2 = malloc(16);
+    size_t key_len = 32;
+    unsigned char *pskdh_key = malloc(key_len);
+    unsigned char *pskdh_key1 = malloc(key_len);
+    unsigned char *pskdh_key2 = malloc(key_len);
     psk_dh(psk, pskdh_key);
     free(pskdh_key);
     free(pskdh_key1);
@@ -236,7 +236,7 @@ int main(void)
 // gcc -o bin/perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto && ./bin/perf_benchmark
 
 // For linux
-// sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto
+// sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && sudo ./perf_benchmark
 
 
 
