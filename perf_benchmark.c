@@ -66,16 +66,32 @@ void measure_cycles(const char *name, void (*func)(), int runs)
     close(fd);
 }
 
+long long read_energy() {
+    FILE *fp = fopen("/sys/class/powercap/intel-rapl:0/energy_uj", "r");
+    if (!fp) {
+        perror("fopen");
+        exit(1);
+    }
+    long long energy;
+    fscanf(fp, "%lld", &energy);
+    fclose(fp);
+    return energy;
+}
+
 /**
- * Measures a methods average CPU cycles and peak RAM usage after 'runs' iterations
+ * Measures a methods average CPU cycles, power consumption and peak RAM usage after 'runs' iterations
  */
 void measure_method(const char *name, void (*func)(), int runs)
 {
     pid_t pid = fork(); // starts new process to reset mem usage
     if (pid == 0)
     {
+        long long start = read_energy();
         measure_cycles(name, func, runs);
         printf("%s: %ld Kb RAM usage\n", name, get_peak_mem_usage());
+        long long end = read_energy();
+        double joules = (end - start) / 1e6; // convert microjoules to joules
+        printf("Energy used: %.6f Joules\n", joules / runs);
         exit(0);
     }
     else
