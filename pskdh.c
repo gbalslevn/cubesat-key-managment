@@ -6,7 +6,7 @@
 
 // https://wiki.openssl.org/index.php/Elliptic_Curve_Diffie_Hellman
 
-static int KEYSIZE = 16;
+static int KEYSIZE = 32;
 
 void handleErrors() {
     printf("There was an error.");
