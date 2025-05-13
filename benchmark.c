@@ -74,7 +74,7 @@ int pskdh_test(void)
 			psk_dh(psk, pskdh_key);
 			TEST_ASSERT(pskdh_key != NULL, end);
 			TEST_ASSERT(bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, pskdh_key, expected_key_len, iv) == RLC_OK, end);
-			bc_aes_cbc_dec(out, &out_len, ct, ct_len, pskdh_key, expected_key_len, iv); // got an error here. Probably from padding. Remove test for now and fix later. 
+			bc_aes_cbc_dec(out, &out_len, ct, ct_len, pskdh_key, expected_key_len, iv); // got an error here. Probably from padding. Remove test for now and fix later.
 			TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
 		}
 		TEST_END;
@@ -302,15 +302,24 @@ int ibbe_test()
 	size_t msg_len = strlen((char *)msg);
 	uint8_t out[msg_len + 16]; // For storing derived plaintext
 	size_t out_len = sizeof(out);
-	char *ids[] = {"Alice", "Bob", "Charlie"};
+	// char *ids[] = {"Alice", "Bob", "Charlie"};
+	char *ids[] = {
+		"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hannah",
+		"Ian", "Jack", "Karen", "Liam", "Mona", "Nathan", "Olivia", "Paul",
+		"Quinn", "Rachel", "Sam", "Tina", "Uma", "Victor", "Wendy", "Xander",
+		"Yara", "Zane", "Abby", "Ben", "Cindy", "Derek", "Ella", "Fred",
+		"Gina", "Harry", "Isla", "Jake", "Kylie", "Leo", "Mia", "Noah",
+		"Oscar", "Penny", "Quincy", "Rita", "Steve", "Tara", "Ulysses", "Vera",
+		"Will", "Xenia", "Yusuf", "Zoe", "Amber", "Brandon", "Clara", "Dylan",
+		"Elena", "Felix", "Georgia", "Henry", "Ivy", "Joel", "Kate", "Logan"};
 	int aliceIsAReceiver = 1; // 1=true, 0=false
 
 	RLC_TRY
 	{
 		TEST_CASE("Delerablée IBBE scheme is correct")
 		{
-			// Setup with security parameter 256 and max 10 users
-			TEST_ASSERT(ibbe_setup(&params, 256, 10) == RLC_OK, end);
+			// Setup with security parameter 256 and max 64 users
+			TEST_ASSERT(ibbe_setup(&params, 256, 70) == RLC_OK, end);
 
 			// Extract private key for Alice
 			TEST_ASSERT(ibbe_extract(&prv, ids[0], &params) == RLC_OK, end);
@@ -321,7 +330,7 @@ int ibbe_test()
 			{
 				ids[0] = "Alese"; // Removing id of Alice so she should not be able to decrypt
 			}
-			TEST_ASSERT(ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params) == RLC_OK, end);
+			TEST_ASSERT(ibbe_encrypt(&ct, msg, msg_len, ids, 64, &params) == RLC_OK, end);
 			// printf("msg is: \n");
 			// for (size_t i = 0; i < msg_len; i++)
 			// {
@@ -344,7 +353,7 @@ int ibbe_test()
 			// 	printf("%c", out[i]);
 			// }
 			// printf("\n");
-			
+
 			// derived plaintext should be the same as the provided message.
 			TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
 		}
@@ -352,7 +361,7 @@ int ibbe_test()
 
 		BENCH_RUN("ibbe_setup")
 		{
-			BENCH_ADD(ibbe_setup(&params, 256, 10));
+			BENCH_ADD(ibbe_setup(&params, 256, 70));
 		}
 		BENCH_END;
 
@@ -364,7 +373,7 @@ int ibbe_test()
 
 		BENCH_RUN("ibbe_encrypt")
 		{
-			BENCH_ADD(ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params));
+			BENCH_ADD(ibbe_encrypt(&ct, msg, msg_len, ids, 64, &params));
 		}
 		BENCH_END;
 

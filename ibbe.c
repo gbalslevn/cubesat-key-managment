@@ -438,3 +438,5 @@ end:
 // For linux
 // gcc -o ibbe ibbe.c -I ../relic/include -I ../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./ibbe
 
+// For at ændre indstillinger, 'ccmake target-relic'. Ændre indtillinger gem og generate (g) og derefter 'make'.
+
