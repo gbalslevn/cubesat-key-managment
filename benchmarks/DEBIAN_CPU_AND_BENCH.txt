@@ -86,21 +86,21 @@ BENCH: ibbe_encrypt                     = 1710 microsec
 BENCH: ibbe_decrypt                     = 4736 microsec
 
 ********* Benchmark for IBBE with 70 users and encryption for 64 users *********
-HKDF: 20822 CPU cycles
-HKDF: 4640 Kb RAM usage
-Energy used: 3200717 microjoules
-PSK-DH: 805692 CPU cycles
-PSK-DH: 5416 Kb RAM usage
-Energy used: 3204419 microjoules
-IBE: 22384208 CPU cycles
-IBE: 2808 Kb RAM usage
-Energy used: 3309302 microjoules
-BLS: 20077405 CPU cycles
-BLS: 2872 Kb RAM usage
-Energy used: 3402698 microjoules
-IBBE: 172829741 CPU cycles
-IBBE: 3360 Kb RAM usage
-Energy used: 4223548 microjoules
+HKDF: 20803 CPU cycles
+HKDF: 4616 Kb RAM usage
+Energy used: 117 microjoules
+PSK-DH: 811750 CPU cycles
+PSK-DH: 5392 Kb RAM usage
+Energy used: 3730 microjoules
+IBE: 22220111 CPU cycles
+IBE: 2784 Kb RAM usage
+Energy used: 105020 microjoules
+BLS: 19919214 CPU cycles
+BLS: 2912 Kb RAM usage
+Energy used: 94670 microjoules
+IBBE: 171980413 CPU cycles
+IBBE: 3400 Kb RAM usage
+Energy used: 807234 microjoules
 
 -- RELIC 0.7.0 configuration:
 

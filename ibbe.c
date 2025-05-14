@@ -380,7 +380,6 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
         // print_hex(aes_key, 32);
         
         // Decrypt message
-        *out_len = ct->ct_len - RLC_MD_LEN; // Adjust for your scheme
         // use a constant IV for testing
         bc_aes_cbc_dec(out, out_len, ct->ct, ct->ct_len, aes_key, sizeof(aes_key), iv);
     } RLC_CATCH_ANY {

@@ -9,7 +9,41 @@
 #include "pskdh.h"
 #include "ibbe.h"
 
-uint8_t msg[] = "Test message!";
+int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length) {
+    FILE *file = fopen(filename, "rb");  // open in binary mode
+    if (!file) {
+        perror("Failed to open file");
+        return -1;
+    }
+
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    *length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    *buffer = (uint8_t *)malloc(*length);
+    if (!*buffer) {
+        perror("Memory allocation failed");
+        fclose(file);
+        return -1;
+    }
+
+    // Read the file into buffer
+    size_t read_bytes = fread(*buffer, 1, *length, file);
+    if (read_bytes != *length) {
+        perror("File read failed");
+        free(*buffer);
+        fclose(file);
+        return -1;
+    }
+
+    fclose(file);
+    return 0;
+}
+
+uint8_t *msg;
+size_t msg_len;
+//uint8_t msg[] = "Test message";
 
 int hkdf_test(void)
 {
@@ -60,7 +94,6 @@ int pskdh_test(void)
 	uint8_t *iv = (uint8_t *)iv_value;
 	// uint8_t msg[] = "Hello PSK!";
 	// rand_bytes(msg, sizeof(msg)); // For generating random message
-	size_t msg_len = strlen((char *)msg);
 	size_t ct_len = msg_len + RLC_MD_LEN;
 	uint8_t *ct = malloc(ct_len);
 	size_t out_len = ct_len;
@@ -136,6 +169,68 @@ end:
 	// free(pskdh_key2);
 	return code;
 }
+
+// int aes_test(void)
+// {
+// 	int code = RLC_ERR;
+// 	uint8_t key_128[16] = {
+// 		0x60, 0x3d, 0xeb, 0x10,
+// 		0x15, 0xca, 0x71, 0xbe,
+// 		0x2b, 0x73, 0xae, 0xf0,
+// 		0x85, 0x7d, 0x77, 0x81};
+// 	uint8_t key_256[32] = {
+// 		0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
+// 		0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
+// 		0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
+// 		0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4};
+// 	static const uint8_t iv_value[16] = {
+// 		0x00, 0x01, 0x02, 0x03,
+// 		0x04, 0x05, 0x06, 0x07,
+// 		0x08, 0x09, 0x0A, 0x0B,
+// 		0x0C, 0x0D, 0x0E, 0x0F};
+
+// 	uint8_t *iv = (uint8_t *)iv_value;
+// 	size_t msg_len = strlen((char *)msg);
+// 	uint8_t ciphertext[128];
+// 	uint8_t decrypted[128];
+// 	size_t ciphertext_len = sizeof(ciphertext);
+// 	size_t decrypted_len = sizeof(decrypted);
+
+// 	RLC_TRY
+// 	{
+// 		TEST_CASE("aes encryption/decryption is correct")
+// 		{
+// 			int enc_result = bc_aes_cbc_enc(ciphertext, &ciphertext_len, msg, msg_len, key_256, sizeof(key_256), iv);
+// 			TEST_ASSERT(enc_result == RLC_OK, end);
+
+// 			int dec_result = bc_aes_cbc_dec(decrypted, &decrypted_len, ciphertext, ciphertext_len, key_256, sizeof(key_256), iv);
+
+// 			TEST_ASSERT(decrypted_len == msg_len, end);
+// 			TEST_ASSERT(memcmp(msg, decrypted, msg_len) == 0, end);
+// 		}
+// 		TEST_END;
+
+// 		BENCH_RUN("aes_enc")
+// 		{
+// 			BENCH_ADD(bc_aes_cbc_enc(ciphertext, &ciphertext_len, msg, msg_len, key_256, sizeof(key_256), iv));
+// 		}
+// 		BENCH_END;
+
+// 		BENCH_RUN("aes_dec")
+// 		{
+// 			BENCH_ADD(bc_aes_cbc_dec(decrypted, &decrypted_len, ciphertext, ciphertext_len, key_256, sizeof(key_256), iv));
+// 		}
+// 		BENCH_END;
+// 	}
+// 	RLC_CATCH_ANY
+// 	{
+// 		RLC_ERROR(end);
+// 	}
+// 	code = RLC_OK;
+
+// end:
+// 	return code;
+// }
 
 int ibe_test(void)
 {
@@ -299,7 +394,6 @@ int ibbe_test()
 	ibbe_ct_t ct;
 	// uint8_t msg[] = "Hello IBBE!";
 	// rand_bytes(msg, sizeof(msg)); // For generating random message
-	size_t msg_len = strlen((char *)msg);
 	uint8_t out[msg_len + 16]; // For storing derived plaintext
 	size_t out_len = sizeof(out);
 	// char *ids[] = {"Alice", "Bob", "Charlie"};
@@ -332,13 +426,13 @@ int ibbe_test()
 			}
 			TEST_ASSERT(ibbe_encrypt(&ct, msg, msg_len, ids, 64, &params) == RLC_OK, end);
 			// printf("msg is: \n");
-			// for (size_t i = 0; i < msg_len; i++)
+			// for (size_t i = 0; i < 100; i++)
 			// {
 			// 	printf("%c", msg[i]);
 			// }
 			// printf("\n");
 			// printf("ct is: \n");
-			// for (size_t i = 0; i < msg_len; i++)
+			// for (size_t i = 0; i < 100; i++)
 			// {
 			// 	printf("%02x", msg[i]);
 			// }
@@ -348,7 +442,7 @@ int ibbe_test()
 			// printf("************* DECRYPT *************\n");
 			TEST_ASSERT(ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params) == RLC_OK, end);
 			// printf("recovered plaintext is: \n");
-			// for (size_t i = 0; i < out_len; i++)
+			// for (size_t i = 0; i < 100; i++)
 			// {
 			// 	printf("%c", out[i]);
 			// }
@@ -420,6 +514,7 @@ int main(void)
 	}
 
 	conf_print();
+	load_file_as_uint8("6mB.txt", &msg, &msg_len);
 
 	util_banner("Testing protocols:\n", 0);
 	if (hkdf_test() != 0)
@@ -432,6 +527,12 @@ int main(void)
 		core_clean();
 		return 1;
 	}
+
+	// if (aes_test() != 0)
+	// {
+	// 	core_clean();
+	// 	return 1;
+	// }
 
 	util_banner("Testing protocols based on pairings:\n", 0);
 	if (pc_param_set_any() == RLC_OK)
