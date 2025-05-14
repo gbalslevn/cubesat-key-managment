@@ -189,11 +189,20 @@ void ibbe_test()
     size_t msg_len = strlen((char *)msg);
     uint8_t out[msg_len + 16]; // For storing derived plaintext
     size_t out_len = sizeof(out);
-    char *ids[] = {"Alice", "Bob", "Charlie"};
+    // char *ids[] = {"Alice", "Bob", "Charlie"};
+    char *ids[] = {
+		"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hannah",
+		"Ian", "Jack", "Karen", "Liam", "Mona", "Nathan", "Olivia", "Paul",
+		"Quinn", "Rachel", "Sam", "Tina", "Uma", "Victor", "Wendy", "Xander",
+		"Yara", "Zane", "Abby", "Ben", "Cindy", "Derek", "Ella", "Fred",
+		"Gina", "Harry", "Isla", "Jake", "Kylie", "Leo", "Mia", "Noah",
+		"Oscar", "Penny", "Quincy", "Rita", "Steve", "Tara", "Ulysses", "Vera",
+		"Will", "Xenia", "Yusuf", "Zoe", "Amber", "Brandon", "Clara", "Dylan",
+		"Elena", "Felix", "Georgia", "Henry", "Ivy", "Joel", "Kate", "Logan"};
 
-    ibbe_setup(&params, 256, 10);
+    ibbe_setup(&params, 256, 70);
     ibbe_extract(&prv, ids[0], &params);
-    ibbe_encrypt(&ct, msg, msg_len, ids, 3, &params);
+    ibbe_encrypt(&ct, msg, msg_len, ids, 64, &params);
     ibbe_decrypt(out, &out_len, &ct, &prv, "Alice", &params);
 
     for (int i = 0; i < ct.num_ids; i++)
