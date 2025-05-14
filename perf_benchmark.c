@@ -89,7 +89,8 @@ void measure_method(const char *name, void (*func)(), int runs)
         long start = read_energy();
         measure_cycles(name, func, runs);
         printf("%s: %ld Kb RAM usage\n", name, get_peak_mem_usage());
-        long microjoules = read_energy();
+        long end = read_energy();
+        long microjoules = end - start;
         printf("Energy used: %ld microjoules\n", microjoules / runs);
         exit(0);
     }

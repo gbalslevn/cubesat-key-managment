@@ -1,3 +1,4 @@
+********* Benchmark for IBBE with 10 users and encrypted for 3 users *********
 Perf_benchmark for 10.000 runs:
 HKDF: 17598 CPU cycles
 HKDF: 4908 Kb RAM usage
@@ -15,7 +16,6 @@ IBBE: 55811380 CPU cycles
 IBBE: 564 Kb RAM usage
 Energy used: 0.272722 Joules
 
-Benchmark for IBBE with 10 users and encrypted for 3 users.
 -- RELIC 0.7.0 configuration:
 
 ** Allocation mode: AUTO
@@ -85,9 +85,23 @@ BENCH: ibbe_extract                     = 244 microsec
 BENCH: ibbe_encrypt                     = 1710 microsec
 BENCH: ibbe_decrypt                     = 4736 microsec
 
+********* Benchmark for IBBE with 70 users and encryption for 64 users *********
+HKDF: 20822 CPU cycles
+HKDF: 4640 Kb RAM usage
+Energy used: 3200717 microjoules
+PSK-DH: 805692 CPU cycles
+PSK-DH: 5416 Kb RAM usage
+Energy used: 3204419 microjoules
+IBE: 22384208 CPU cycles
+IBE: 2808 Kb RAM usage
+Energy used: 3309302 microjoules
+BLS: 20077405 CPU cycles
+BLS: 2872 Kb RAM usage
+Energy used: 3402698 microjoules
+IBBE: 172829741 CPU cycles
+IBBE: 3360 Kb RAM usage
+Energy used: 4223548 microjoules
 
-
-Benchmark for IBBE with 70 users and encryption for 64 users.
 -- RELIC 0.7.0 configuration:
 
 ** Allocation mode: AUTO
@@ -96,7 +110,6 @@ Benchmark for IBBE with 70 users and encryption for 64 users.
 
 ** Benchmarking options:
    Number of times: 10000
-   Estimated overhead: 0 microsec
 
 ** Multiple precision module options:
    Precision: 16384 bits, 256 words
@@ -137,23 +150,23 @@ Benchmark for IBBE with 70 users and encryption for 64 users.
 Testing if hkdf is succesfull...                                              [PASS]
 BENCH: hkdf                             = 4 microsec
 Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
-BENCH: psk_dh_gen                       = 84 microsec
+BENCH: psk_dh_gen                       = 206 microsec
 BENCH: psk_dh_aes_enc                   = 0 microsec
 BENCH: psk_dh_aes_dec                   = 0 microsec
 
 -- Testing protocols based on pairings:
 
 Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
-BENCH: master_ibe_gen                   = 184 microsec
-BENCH: usk_ibe_gen                      = 1895 microsec
-BENCH: cp_ibe_enc                       = 4077 microsec
-BENCH: cp_ibe_dec                       = 2105 microsec
+BENCH: master_ibe_gen                   = 97 microsec
+BENCH: usk_ibe_gen                      = 934 microsec
+BENCH: cp_ibe_enc                       = 3020 microsec
+BENCH: cp_ibe_dec                       = 1705 microsec
 Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
-BENCH: cp_bls_gen                       = 521 microsec
-BENCH: cp_bls_sign                      = 900 microsec
-BENCH: cp_bls_ver                       = 3379 microsec
+BENCH: cp_bls_gen                       = 366 microsec
+BENCH: cp_bls_sign                      = 362 microsec
+BENCH: cp_bls_ver                       = 2607 microsec
 Testing if Delerablée IBBE scheme is correct...                              [PASS]
-BENCH: ibbe_setup                       = 65677 microsec
-BENCH: ibbe_extract                     = 604 microsec
-BENCH: ibbe_encrypt                     = 2929 microsec
-BENCH: ibbe_decrypt                     = 6312 microsec
+BENCH: ibbe_setup                       = 37294 microsec
+BENCH: ibbe_extract                     = 261 microsec
+BENCH: ibbe_encrypt                     = 2069 microsec
+BENCH: ibbe_decrypt                     = 5031 microsec
