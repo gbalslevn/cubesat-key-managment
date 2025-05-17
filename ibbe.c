@@ -40,13 +40,13 @@ typedef struct {
     size_t ct_len;
 } ibbe_ct_t;
 
-static const uint8_t iv_value[16] = {
+uint8_t static_iv_value[16] = {
     0x00, 0x01, 0x02, 0x03,
     0x04, 0x05, 0x06, 0x07,
     0x08, 0x09, 0x0A, 0x0B,
     0x0C, 0x0D, 0x0E, 0x0F
 };
-uint8_t *iv = (uint8_t *)iv_value;
+uint8_t *static_iv = (uint8_t *)static_iv_value;
 
 void print_char(const u_int8_t *msg, size_t msg_len) {
     for (size_t i = 0; i < msg_len; i++) {
@@ -266,7 +266,7 @@ int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len,
             result = RLC_ERR;
             RLC_THROW(ERR_CAUGHT);
         }
-        bc_aes_cbc_enc(ct->ct, &ct->ct_len, msg, msg_len, aes_key, sizeof(aes_key), iv);
+        bc_aes_cbc_enc(ct->ct, &ct->ct_len, msg, msg_len, aes_key, sizeof(aes_key), static_iv);
     } RLC_CATCH_ANY {
         result = RLC_ERR;
     }
@@ -381,7 +381,7 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
         
         // Decrypt message
         // use a constant IV for testing
-        bc_aes_cbc_dec(out, out_len, ct->ct, ct->ct_len, aes_key, sizeof(aes_key), iv);
+        bc_aes_cbc_dec(out, out_len, ct->ct, ct->ct_len, aes_key, sizeof(aes_key), static_iv);
     } RLC_CATCH_ANY {
         result = RLC_ERR;
     }

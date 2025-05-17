@@ -9,41 +9,51 @@
 #include "pskdh.h"
 #include "ibbe.h"
 
-int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length) {
-    FILE *file = fopen(filename, "rb");  // open in binary mode
-    if (!file) {
-        perror("Failed to open file");
-        return -1;
-    }
+int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length)
+{
+	FILE *file = fopen(filename, "rb"); // open in binary mode
+	if (!file)
+	{
+		perror("Failed to open file");
+		return -1;
+	}
 
-    // Get file size
-    fseek(file, 0, SEEK_END);
-    *length = ftell(file);
-    fseek(file, 0, SEEK_SET);
+	// Get file size
+	fseek(file, 0, SEEK_END);
+	*length = ftell(file);
+	fseek(file, 0, SEEK_SET);
 
-    *buffer = (uint8_t *)malloc(*length);
-    if (!*buffer) {
-        perror("Memory allocation failed");
-        fclose(file);
-        return -1;
-    }
+	*buffer = (uint8_t *)malloc(*length);
+	if (!*buffer)
+	{
+		perror("Memory allocation failed");
+		fclose(file);
+		return -1;
+	}
 
-    // Read the file into buffer
-    size_t read_bytes = fread(*buffer, 1, *length, file);
-    if (read_bytes != *length) {
-        perror("File read failed");
-        free(*buffer);
-        fclose(file);
-        return -1;
-    }
+	// Read the file into buffer
+	size_t read_bytes = fread(*buffer, 1, *length, file);
+	if (read_bytes != *length)
+	{
+		perror("File read failed");
+		free(*buffer);
+		fclose(file);
+		return -1;
+	}
 
-    fclose(file);
-    return 0;
+	fclose(file);
+	return 0;
 }
 
 uint8_t *msg;
 size_t msg_len;
-//uint8_t msg[] = "Test message";
+// uint8_t msg[] = "Test message";
+int8_t iv_value[16] = {
+	0x00, 0x01, 0x02, 0x03,
+	0x04, 0x05, 0x06, 0x07,
+	0x08, 0x09, 0x0A, 0x0B,
+	0x0C, 0x0D, 0x0E, 0x0F};
+uint8_t *iv = (uint8_t *)iv_value;
 
 int hkdf_test(void)
 {
@@ -79,25 +89,13 @@ end:
 int pskdh_test(void)
 {
 	int code = RLC_ERR;
-	const char *psk = "asecretpsk";
-	const char *anotherpsk = "anotherpsk";
+	const char *psk = "asecretpsk123456789010111213141";
 	size_t expected_key_len = 32;
 	unsigned char *pskdh_key = malloc(32);
-	// unsigned char *pskdh_key1 = malloc(16);
-	// unsigned char *pskdh_key2 = malloc(16);
-
-	static const uint8_t iv_value[16] = {
-		0x00, 0x01, 0x02, 0x03,
-		0x04, 0x05, 0x06, 0x07,
-		0x08, 0x09, 0x0A, 0x0B,
-		0x0C, 0x0D, 0x0E, 0x0F};
-	uint8_t *iv = (uint8_t *)iv_value;
-	// uint8_t msg[] = "Hello PSK!";
-	// rand_bytes(msg, sizeof(msg)); // For generating random message
 	size_t ct_len = msg_len + RLC_MD_LEN;
 	uint8_t *ct = malloc(ct_len);
 	size_t out_len = ct_len;
-	uint8_t out[out_len]; // For storing derived plaintext
+	uint8_t out[out_len];
 
 	RLC_TRY
 	{
@@ -111,35 +109,6 @@ int pskdh_test(void)
 			TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
 		}
 		TEST_END;
-		// To do this test we need to do it where the keypair to create the dh secret Z is fixed else the derived key will be different, even though salt and info is fixed.
-		// TEST_CASE("pskdh generates different keys for different PSKs")
-		// {
-		// 	psk_dh(psk, pskdh_key1);
-		// 	psk_dh(psk, pskdh_key2);
-		// 	TEST_ASSERT(pskdh_key1 != NULL && pskdh_key2 != NULL, end);
-		// 	TEST_ASSERT(memcmp(pskdh_key1, pskdh_key2, expected_key_len) != 0, end);
-		// }
-		// TEST_END;
-
-		// for (size_t i = 0; i < expected_key_len; i++)
-		// {
-		// 	printf("%02x", pskdh_key1[i]);
-		// }
-		// printf("\nand the other key is\n");
-		// for (size_t i = 0; i < expected_key_len; i++)
-		// {
-		// 	printf("%02x", pskdh_key2[i]);
-		// }
-
-		// TEST_CASE("pskdh generates equal keys for the same PSK (given salt is the same)")
-		// {
-		// 	psk_dh(psk, pskdh_key1);
-		// 	psk_dh(anotherpsk, pskdh_key2);
-
-		// 	TEST_ASSERT(pskdh_key1 != NULL && pskdh_key2 != NULL, end);
-		// 	TEST_ASSERT(memcmp(pskdh_key1, pskdh_key2, expected_key_len) != 0, end);
-		// }
-		// TEST_END;
 
 		BENCH_RUN("psk_dh_gen")
 		{
@@ -165,72 +134,29 @@ int pskdh_test(void)
 
 end:
 	free(pskdh_key);
-	// free(pskdh_key1);
-	// free(pskdh_key2);
+	free(ct);
 	return code;
 }
 
-// int aes_test(void)
-// {
-// 	int code = RLC_ERR;
-// 	uint8_t key_128[16] = {
-// 		0x60, 0x3d, 0xeb, 0x10,
-// 		0x15, 0xca, 0x71, 0xbe,
-// 		0x2b, 0x73, 0xae, 0xf0,
-// 		0x85, 0x7d, 0x77, 0x81};
-// 	uint8_t key_256[32] = {
-// 		0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,
-// 		0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,
-// 		0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,
-// 		0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4};
-// 	static const uint8_t iv_value[16] = {
-// 		0x00, 0x01, 0x02, 0x03,
-// 		0x04, 0x05, 0x06, 0x07,
-// 		0x08, 0x09, 0x0A, 0x0B,
-// 		0x0C, 0x0D, 0x0E, 0x0F};
+/**
+ * Encrypts an aes key with IBE and also encrypts a message with the aes key 
+ */
+void ibe_enc_with_aes(uint8_t *out, size_t *out_len, const uint8_t *in, size_t in_len,
+					  const char *id, const g1_t pub, uint8_t *ct, size_t ct_len)
+{
+	cp_ibe_enc(out, out_len, in, in_len, id, pub);
+	bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, in, in_len, iv);
+}
 
-// 	uint8_t *iv = (uint8_t *)iv_value;
-// 	size_t msg_len = strlen((char *)msg);
-// 	uint8_t ciphertext[128];
-// 	uint8_t decrypted[128];
-// 	size_t ciphertext_len = sizeof(ciphertext);
-// 	size_t decrypted_len = sizeof(decrypted);
-
-// 	RLC_TRY
-// 	{
-// 		TEST_CASE("aes encryption/decryption is correct")
-// 		{
-// 			int enc_result = bc_aes_cbc_enc(ciphertext, &ciphertext_len, msg, msg_len, key_256, sizeof(key_256), iv);
-// 			TEST_ASSERT(enc_result == RLC_OK, end);
-
-// 			int dec_result = bc_aes_cbc_dec(decrypted, &decrypted_len, ciphertext, ciphertext_len, key_256, sizeof(key_256), iv);
-
-// 			TEST_ASSERT(decrypted_len == msg_len, end);
-// 			TEST_ASSERT(memcmp(msg, decrypted, msg_len) == 0, end);
-// 		}
-// 		TEST_END;
-
-// 		BENCH_RUN("aes_enc")
-// 		{
-// 			BENCH_ADD(bc_aes_cbc_enc(ciphertext, &ciphertext_len, msg, msg_len, key_256, sizeof(key_256), iv));
-// 		}
-// 		BENCH_END;
-
-// 		BENCH_RUN("aes_dec")
-// 		{
-// 			BENCH_ADD(bc_aes_cbc_dec(decrypted, &decrypted_len, ciphertext, ciphertext_len, key_256, sizeof(key_256), iv));
-// 		}
-// 		BENCH_END;
-// 	}
-// 	RLC_CATCH_ANY
-// 	{
-// 		RLC_ERROR(end);
-// 	}
-// 	code = RLC_OK;
-
-// end:
-// 	return code;
-// }
+/**
+ * Decrypts an aes key with IBE and also decrypts a message with the aes key 
+ */
+void ibe_dec_with_aes(uint8_t *out, size_t out_len, const uint8_t *in, size_t in_len,
+					  const g2_t prv, uint8_t *ct, size_t ct_len, uint8_t *plaintext)
+{
+	cp_ibe_dec(out, &out_len, in, in_len, prv);
+	bc_aes_cbc_dec(plaintext, &msg_len, ct, ct_len, out, out_len, iv);
+}
 
 int ibe_test(void)
 {
@@ -238,9 +164,18 @@ int ibe_test(void)
 	bn_t s;
 	g1_t pub;
 	g2_t prv;
-	uint8_t in[10], out[10 + 2 * RLC_FP_BYTES + 1];
+
+	uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
+	size_t aes_key_length = 32;
+	size_t ct_aes_key_len = aes_key_length + 2 * RLC_FP_BYTES + 1;
+	uint8_t *ct_aes_key = malloc(ct_aes_key_len);
+	uint8_t *out_aes_key = malloc(aes_key_length);
 	char *id = "Alice";
-	size_t il, ol;
+
+	size_t ct_len = msg_len + 2 * RLC_FP_BYTES + 1;
+	uint8_t *ct = malloc(ct_len);
+	uint8_t *plaintext = malloc(msg_len);
+
 	int result;
 
 	bn_null(s);
@@ -253,31 +188,22 @@ int ibe_test(void)
 		g1_new(pub);
 		g2_new(prv);
 
-		// printf("Pub is: \n");
-		// g1_print(pub);
-		result = cp_ibe_gen(s, pub);
-		// printf("Pub is: \n");
-		// g1_print(pub);
-
 		TEST_CASE("boneh-franklin identity-based encryption/decryption is correct")
 		{
-			TEST_ASSERT(result == RLC_OK, end);
-			il = 10;
-			ol = il + 2 * RLC_FP_BYTES + 1;
-			rand_bytes(in, il);
+			TEST_ASSERT(cp_ibe_gen(s, pub) == RLC_OK, end);
 			TEST_ASSERT(cp_ibe_gen_prv(prv, id, s) == RLC_OK, end);
-			TEST_ASSERT(cp_ibe_enc(out, &ol, in, il, id, pub) == RLC_OK, end);
-			TEST_ASSERT(cp_ibe_dec(out, &il, out, ol, prv) == RLC_OK, end);
-			TEST_ASSERT(memcmp(in, out, il) == 0, end);
+			bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, aes_key, aes_key_length, iv);
+			TEST_ASSERT(cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub) == RLC_OK, end);
+			TEST_ASSERT(cp_ibe_dec(out_aes_key, &aes_key_length, ct_aes_key, ct_aes_key_len, prv) == RLC_OK, end);
+			bc_aes_cbc_dec(plaintext, &ct_len, ct, ct_len, out_aes_key, aes_key_length, iv);
+			TEST_ASSERT(memcmp(aes_key, out_aes_key, aes_key_length) == 0, end)
+			TEST_ASSERT(memcmp(msg, plaintext, msg_len) == 0, end);
 		}
 		TEST_END;
 
 		BENCH_RUN("master_ibe_gen")
 		{
 			BENCH_ADD(cp_ibe_gen(s, pub));
-			// bench_init();
-			// bench_overhead();
-			// bench_clean();
 		}
 		BENCH_END;
 
@@ -289,22 +215,13 @@ int ibe_test(void)
 
 		BENCH_RUN("cp_ibe_enc")
 		{
-			il = sizeof(in);
-			ol = il + 2 * RLC_FP_BYTES + 1;
-			rand_bytes(in, sizeof(in));
-			BENCH_ADD(cp_ibe_enc(out, &ol, in, il, id, pub));
+			BENCH_ADD(ibe_enc_with_aes(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub, ct, ct_len));
 		}
 		BENCH_END;
 
 		BENCH_RUN("cp_ibe_dec")
 		{
-			il = sizeof(in);
-			ol = il + 2 * RLC_FP_BYTES + 1;
-			uint8_t plaintext[il];
-			size_t plaintext_len = il;
-			rand_bytes(in, sizeof(in));
-			cp_ibe_enc(out, &ol, in, il, id, pub);
-			BENCH_ADD(cp_ibe_dec(plaintext, &plaintext_len, out, ol, prv));
+			BENCH_ADD(ibe_dec_with_aes(out_aes_key, aes_key_length, ct_aes_key, ct_aes_key_len, prv, ct, ct_len, plaintext));
 		}
 		BENCH_END;
 	}
@@ -318,6 +235,9 @@ end:
 	bn_free(s);
 	g1_free(pub);
 	g2_free(prv);
+	free(ct_aes_key);
+	free(out_aes_key);
+	free(ct);
 	return code;
 }
 
@@ -327,7 +247,6 @@ int bls_test(void)
 	bn_t d;
 	g1_t s;
 	g2_t q;
-	uint8_t m[5] = {0, 1, 2, 3, 4};
 
 	bn_null(d);
 	g1_null(s);
@@ -342,12 +261,12 @@ int bls_test(void)
 		TEST_CASE("boneh-lynn-schacham short signature is correct")
 		{
 			TEST_ASSERT(cp_bls_gen(d, q) == RLC_OK, end);
-			TEST_ASSERT(cp_bls_sig(s, m, sizeof(m), d) == RLC_OK, end);
-			TEST_ASSERT(cp_bls_ver(s, m, sizeof(m), q) == 1, end);
+			TEST_ASSERT(cp_bls_sig(s, msg, msg_len, d) == RLC_OK, end);
+			TEST_ASSERT(cp_bls_ver(s, msg, msg_len, q) == 1, end);
 			/* Check adversarial signature. */
-			memset(m, 0, sizeof(m));
+			memset(msg, 0, msg_len);
 			g2_set_infty(q);
-			TEST_ASSERT(cp_bls_ver(s, m, sizeof(m), q) == 0, end);
+			TEST_ASSERT(cp_bls_ver(s, msg, msg_len, q) == 0, end);
 		}
 		TEST_END;
 
@@ -359,13 +278,13 @@ int bls_test(void)
 
 		BENCH_RUN("cp_bls_sign")
 		{
-			BENCH_ADD(cp_bls_sig(s, m, sizeof(m), d));
+			BENCH_ADD(cp_bls_sig(s, msg, msg_len, d));
 		}
 		BENCH_END;
 
 		BENCH_RUN("cp_bls_ver")
 		{
-			BENCH_ADD(cp_bls_ver(s, m, sizeof(m), q));
+			BENCH_ADD(cp_bls_ver(s, msg, msg_len, q));
 		}
 		BENCH_END;
 
@@ -392,8 +311,6 @@ int ibbe_test()
 	ibbe_params_t params;
 	ibbe_prv_t prv;
 	ibbe_ct_t ct;
-	// uint8_t msg[] = "Hello IBBE!";
-	// rand_bytes(msg, sizeof(msg)); // For generating random message
 	uint8_t out[msg_len + 16]; // For storing derived plaintext
 	size_t out_len = sizeof(out);
 	// char *ids[] = {"Alice", "Bob", "Charlie"};
@@ -486,7 +403,9 @@ int ibbe_test()
 end:
 	// Cleanup ciphertext
 	for (int i = 0; i < ct.num_ids; i++)
+	{
 		free(ct.ids[i]);
+	}
 	free(ct.ids);
 	free(ct.ct);
 	// Cleanup params
@@ -496,10 +415,10 @@ end:
 	g2_free(params.h);
 	gt_free(params.v);
 	for (int i = 0; i <= params.max_users; i++)
+	{
 		g2_free(params.h_gamma[i]);
+	}
 	free(params.h_gamma);
-
-	// Cleanup private key
 	g1_free(prv.sk);
 
 	return code;

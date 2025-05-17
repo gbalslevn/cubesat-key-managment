@@ -17,6 +17,51 @@
 // Amount of times the measurement of CPU cycles for each method is repeated.
 static int DEFAULT_RUNS = 1000;
 
+int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length)
+{
+	FILE *file = fopen(filename, "rb"); // open in binary mode
+	if (!file)
+	{
+		perror("Failed to open file");
+		return -1;
+	}
+
+	// Get file size
+	fseek(file, 0, SEEK_END);
+	*length = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	*buffer = (uint8_t *)malloc(*length);
+	if (!*buffer)
+	{
+		perror("Memory allocation failed");
+		fclose(file);
+		return -1;
+	}
+
+	// Read the file into buffer
+	size_t read_bytes = fread(*buffer, 1, *length, file);
+	if (read_bytes != *length)
+	{
+		perror("File read failed");
+		free(*buffer);
+		fclose(file);
+		return -1;
+	}
+
+	fclose(file);
+	return 0;
+}
+
+uint8_t *msg;
+size_t msg_len;
+int8_t iv_value[16] = {
+	0x00, 0x01, 0x02, 0x03,
+	0x04, 0x05, 0x06, 0x07,
+	0x08, 0x09, 0x0A, 0x0B,
+	0x0C, 0x0D, 0x0E, 0x0F};
+uint8_t *iv = (uint8_t *)iv_value;
+
 static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
                             int cpu, int group_fd, unsigned long flags)
 {
@@ -108,16 +153,11 @@ void hkdf_test()
 
 void pskdh_test()
 {
-    const char *psk = "asecretpsk";
-    const char *anotherpsk = "anotherpsk";
+    const char *psk = "asecretpsk123456789010111213141";
     size_t key_len = 32;
     unsigned char *pskdh_key = malloc(key_len);
-    unsigned char *pskdh_key1 = malloc(key_len);
-    unsigned char *pskdh_key2 = malloc(key_len);
     psk_dh(psk, pskdh_key);
     free(pskdh_key);
-    free(pskdh_key1);
-    free(pskdh_key2);
 }
 
 void ibe_test()
@@ -125,9 +165,17 @@ void ibe_test()
     bn_t s;
     g1_t pub;
     g2_t prv;
-    uint8_t in[10], out[10 + 2 * RLC_FP_BYTES + 1];
-    char *id = "Alice";
-    size_t il, ol;
+    uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
+	size_t aes_key_length = 32;
+	size_t ct_aes_key_len = aes_key_length + 2 * RLC_FP_BYTES + 1;
+	uint8_t *ct_aes_key = malloc(ct_aes_key_len);
+	uint8_t *out_aes_key = malloc(aes_key_length);
+	char *id = "Alice";
+
+	size_t ct_len = msg_len + 2 * RLC_FP_BYTES + 1;
+	uint8_t *ct = malloc(ct_len);
+	uint8_t *plaintext = malloc(msg_len);
+
     int result;
 
     bn_null(s);
@@ -138,16 +186,20 @@ void ibe_test()
     g1_new(pub);
     g2_new(prv);
 
-    il = 10;
-    ol = il + 2 * RLC_FP_BYTES + 1;
     cp_ibe_gen(s, pub);
     cp_ibe_gen_prv(prv, id, s);
-    cp_ibe_enc(out, &ol, in, il, id, pub);
-    cp_ibe_dec(out, &il, out, ol, prv);
+    bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, aes_key, aes_key_length, iv);
+    cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub);
+    cp_ibe_dec(out_aes_key, &aes_key_length, ct_aes_key, ct_aes_key_len, prv);
+    bc_aes_cbc_dec(plaintext, &ct_len, ct, ct_len, out_aes_key, aes_key_length, iv);
 
     bn_free(s);
     g1_free(pub);
     g2_free(prv);
+    free(ct_aes_key);
+    free(out_aes_key);
+    free(ct);
+    free(plaintext);
 }
 
 void bls_test()
@@ -155,7 +207,6 @@ void bls_test()
     bn_t d;
     g1_t s;
     g2_t q;
-    uint8_t m[5] = {0, 1, 2, 3, 4};
 
     bn_null(d);
     g1_null(s);
@@ -166,12 +217,12 @@ void bls_test()
     g2_new(q);
 
     cp_bls_gen(d, q);
-    cp_bls_sig(s, m, sizeof(m), d);
-    cp_bls_ver(s, m, sizeof(m), q);
+    cp_bls_sig(s, msg, msg_len, d);
+    cp_bls_ver(s, msg, msg_len, q);
     /* Check adversarial signature. */
-    memset(m, 0, sizeof(m));
+    memset(msg, 0, msg_len);
     g2_set_infty(q);
-    cp_bls_ver(s, m, sizeof(m), q);
+    cp_bls_ver(s, msg, msg_len, q);
 
     bn_free(d);
     g1_free(s);
@@ -186,8 +237,6 @@ void ibbe_test()
     ibbe_params_t params;
     ibbe_prv_t prv;
     ibbe_ct_t ct;
-    uint8_t msg[] = "Hello IBBE!";
-    size_t msg_len = strlen((char *)msg);
     uint8_t out[msg_len + 16]; // For storing derived plaintext
     size_t out_len = sizeof(out);
     // char *ids[] = {"Alice", "Bob", "Charlie"};
@@ -228,6 +277,8 @@ int main(void)
         core_clean();
         return 1;
     }
+
+    load_file_as_uint8("6mB.txt", &msg, &msg_len);
 
     // printf("**** Average CPU cycles and max RAM usage for each method in %d runs ****\n", DEFAULT_RUNS);
     measure_method("HKDF", hkdf_test, DEFAULT_RUNS);
