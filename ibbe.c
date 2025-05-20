@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "aes.h"
 
 /**
  * The Delerablée IBBE scheme based on https://www.iacr.org/archive/asiacrypt2007/48330198/48330198.pdf
@@ -186,7 +187,7 @@ int ibbe_extract(ibbe_prv_t *prv, const char *id, const ibbe_params_t *params) {
 }
 
 /* Encrypt for a set of identities */
-int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len, 
+int ibbe_encrypt(ibbe_ct_t *ct, uint8_t *msg, size_t msg_len, 
                 char **ids, int num_ids, const ibbe_params_t *params) {
     int result = RLC_OK;
     bn_t k, product, h_id, temp;
@@ -266,7 +267,7 @@ int ibbe_encrypt(ibbe_ct_t *ct, const uint8_t *msg, size_t msg_len,
             result = RLC_ERR;
             RLC_THROW(ERR_CAUGHT);
         }
-        bc_aes_cbc_enc(ct->ct, &ct->ct_len, msg, msg_len, aes_key, sizeof(aes_key), static_iv);
+        aes_256_cbc_encrypt(msg, msg_len, aes_key, static_iv, ct->ct);
     } RLC_CATCH_ANY {
         result = RLC_ERR;
     }
@@ -381,7 +382,7 @@ int ibbe_decrypt(uint8_t *out, size_t *out_len, const ibbe_ct_t *ct,
         
         // Decrypt message
         // use a constant IV for testing
-        bc_aes_cbc_dec(out, out_len, ct->ct, ct->ct_len, aes_key, sizeof(aes_key), static_iv);
+        aes_256_cbc_decrypt(ct->ct, ct->ct_len, aes_key, static_iv, out);
     } RLC_CATCH_ANY {
         result = RLC_ERR;
     }
@@ -432,10 +433,10 @@ end:
 //     return 0;
 // }
 
-// gcc -o bin/ibbe ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
+// gcc -o bin/ibbe ibbe.c aes.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a && ./ibbe
 
 // For linux
-// gcc -o ibbe ibbe.c -I ../relic/include -I ../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./ibbe
+// gcc -o ibbe ibbe.c aes.c -I ../relic/include -I ../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./ibbe
 
 // For at ændre indstillinger, 'ccmake target-relic'. Ændre indtillinger gem og generate (g) og derefter 'make'.
 

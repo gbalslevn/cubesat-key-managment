@@ -188,10 +188,10 @@ void ibe_test()
 
     cp_ibe_gen(s, pub);
     cp_ibe_gen_prv(prv, id, s);
-    bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, aes_key, aes_key_length, iv);
+    aes_256_cbc_encrypt(msg, msg_len, aes_key, iv, ct);
     cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub);
     cp_ibe_dec(out_aes_key, &aes_key_length, ct_aes_key, ct_aes_key_len, prv);
-    bc_aes_cbc_dec(plaintext, &ct_len, ct, ct_len, out_aes_key, aes_key_length, iv);
+    aes_256_cbc_decrypt(ct, ct_len, out_aes_key, iv, plaintext);
 
     bn_free(s);
     g1_free(pub);
@@ -293,10 +293,10 @@ int main(void)
     return 0;
 }
 
-// gcc -o bin/perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto && ./bin/perf_benchmark
+// gcc -o bin/perf_benchmark perf_benchmark.c pskdh.c ibbe.c aes.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto && ./bin/perf_benchmark
 
 // For linux
-// sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && sudo ./perf_benchmark
+// sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c aes.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && sudo ./perf_benchmark
 
 
 

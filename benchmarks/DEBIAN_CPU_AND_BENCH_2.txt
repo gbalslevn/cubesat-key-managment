@@ -1,0 +1,177 @@
+********* Benchmark for IBBE with 10 users and encryption for 3 users *********
+1000 Runs and encryption of a 6 mB message
+HKDF: 21018 CPU cycles
+HKDF: 10484 Kb RAM usage
+Energy used: 118 microjoules
+PSK-DH: 819617 CPU cycles
+PSK-DH: 11260 Kb RAM usage
+Energy used: 3727 microjoules
+IBE: 256223050 CPU cycles
+IBE: 20564 Kb RAM usage
+Energy used: 1257728 microjoules
+BLS: 401581506 CPU cycles
+BLS: 8848 Kb RAM usage
+Energy used: 1801252 microjoules
+IBBE: 290061988 CPU cycles
+IBBE: 20676 Kb RAM usage
+Energy used: 1438053 microjoules
+
+-- RELIC 0.7.0 configuration:
+
+** Allocation mode: AUTO
+
+** Arithmetic backend: easy
+
+** Benchmarking options:
+   Number of times: 10000
+
+** Multiple precision module options:
+   Precision: 16384 bits, 256 words
+   Arithmetic method: COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
+
+** Prime field module options:
+   Prime size: 256 bits, 4 words
+   Arithmetic method: INTEG;INTEG;INTEG;MONTY;MONTY;JMPDS;SLIDE
+
+** Prime field extension module options:
+   Arithmetic method: INTEG;INTEG;LAZYR
+
+** Prime elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER;SSWUM
+
+** Bilinear pairing module options:
+   Arithmetic method: LAZYR;OATEP
+
+** Binary field module options:
+   Polynomial size: 283 bits, 5 words
+   Arithmetic method: LODAH;QUICK;QUICK;QUICK;QUICK;QUICK;EXGCD;SLIDE;QUICK
+
+** Binary elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Elliptic Curve Cryptography module options:
+   Arithmetic method: PRIME
+
+** Edwards Curve Cryptography module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Hash function module options:
+   Chosen method: SH256
+
+
+-- Testing protocols:
+
+Testing if hkdf is succesfull...                                              [PASS]
+BENCH: hkdf                             = 4 microsec
+Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
+BENCH: psk_dh_gen                       = 205 microsec
+BENCH: psk_dh_aes_enc                   = 31414 microsec
+BENCH: psk_dh_aes_dec                   = 0 microsec
+
+-- Testing protocols based on pairings:
+
+Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
+BENCH: master_ibe_gen                   = 96 microsec
+BENCH: usk_ibe_gen                      = 914 microsec
+BENCH: cp_ibe_enc                       = 2994 microsec
+BENCH: cp_ibe_dec                       = 1691 microsec
+Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
+BENCH: cp_bls_gen                       = 361 microsec
+BENCH: cp_bls_sign                      = 357 microsec
+BENCH: cp_bls_ver                       = 2591 microsec
+Testing if Delerablée IBBE scheme is correct...                              [PASS]
+BENCH: ibbe_setup                       = 7879 microsec
+BENCH: ibbe_extract                     = 263 microsec
+BENCH: ibbe_encrypt                     = 1832 microsec
+BENCH: ibbe_decrypt                     = 4776 microsec
+
+
+
+
+********* Benchmark for IBBE with 70 users and encryption for 64 users *********
+1000 Runs and encryption of a 6 mB message
+
+HKDF: 20913 CPU cycles
+HKDF: 10500 Kb RAM usage
+Energy used: 101 microjoules
+PSK-DH: 804930 CPU cycles
+PSK-DH: 11276 Kb RAM usage
+Energy used: 3706 microjoules
+IBE: 255875952 CPU cycles
+IBE: 20576 Kb RAM usage
+Energy used: 1242806 microjoules
+BLS: 397096823 CPU cycles
+BLS: 8856 Kb RAM usage
+Energy used: 1794405 microjoules
+IBBE: 406424391 CPU cycles
+IBBE: 20948 Kb RAM usage
+Energy used: 1974062 microjoules
+
+-- RELIC 0.7.0 configuration:
+
+** Allocation mode: AUTO
+
+** Arithmetic backend: easy
+
+** Benchmarking options:
+   Number of times: 10000
+
+** Multiple precision module options:
+   Precision: 16384 bits, 256 words
+   Arithmetic method: COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
+
+** Prime field module options:
+   Prime size: 256 bits, 4 words
+   Arithmetic method: INTEG;INTEG;INTEG;MONTY;MONTY;JMPDS;SLIDE
+
+** Prime field extension module options:
+   Arithmetic method: INTEG;INTEG;LAZYR
+
+** Prime elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER;SSWUM
+
+** Bilinear pairing module options:
+   Arithmetic method: LAZYR;OATEP
+
+** Binary field module options:
+   Polynomial size: 283 bits, 5 words
+   Arithmetic method: LODAH;QUICK;QUICK;QUICK;QUICK;QUICK;EXGCD;SLIDE;QUICK
+
+** Binary elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Elliptic Curve Cryptography module options:
+   Arithmetic method: PRIME
+
+** Edwards Curve Cryptography module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Hash function module options:
+   Chosen method: SH256
+
+
+-- Testing protocols:
+
+Testing if hkdf is succesfull...                                              [PASS]
+BENCH: hkdf                             = 4 microsec
+Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
+BENCH: psk_dh_gen                       = 206 microsec
+BENCH: psk_dh_aes_enc                   = 31304 microsec
+BENCH: psk_dh_aes_dec                   = 0 microsec
+
+-- Testing protocols based on pairings:
+
+Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
+BENCH: master_ibe_gen                   = 97 microsec
+BENCH: usk_ibe_gen                      = 931 microsec
+BENCH: cp_ibe_enc                       = 3013 microsec
+BENCH: cp_ibe_dec                       = 1703 microsec
+Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
+BENCH: cp_bls_gen                       = 365 microsec
+BENCH: cp_bls_sign                      = 362 microsec
+BENCH: cp_bls_ver                       = 2601 microsec
+Testing if Delerablée IBBE scheme is correct...                              [PASS]
+BENCH: ibbe_setup                       = 37240 microsec
+BENCH: ibbe_extract                     = 253 microsec
+BENCH: ibbe_encrypt                     = 2069 microsec
+BENCH: ibbe_decrypt                     = 5028 microsec

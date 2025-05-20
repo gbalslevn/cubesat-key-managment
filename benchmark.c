@@ -3,11 +3,11 @@
  */
 
 #include <stdio.h>
-
 #include "relic.h"
 #include "relic_test.h"
 #include "pskdh.h"
 #include "ibbe.h"
+#include "aes.h"
 
 int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length)
 {
@@ -47,7 +47,6 @@ int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length)
 
 uint8_t *msg;
 size_t msg_len;
-// uint8_t msg[] = "Test message";
 int8_t iv_value[16] = {
 	0x00, 0x01, 0x02, 0x03,
 	0x04, 0x05, 0x06, 0x07,
@@ -90,7 +89,6 @@ int pskdh_test(void)
 {
 	int code = RLC_ERR;
 	const char *psk = "asecretpsk123456789010111213141";
-	size_t expected_key_len = 32;
 	unsigned char *pskdh_key = malloc(32);
 	size_t ct_len = msg_len + RLC_MD_LEN;
 	uint8_t *ct = malloc(ct_len);
@@ -104,8 +102,8 @@ int pskdh_test(void)
 		{
 			psk_dh(psk, pskdh_key);
 			TEST_ASSERT(pskdh_key != NULL, end);
-			TEST_ASSERT(bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, pskdh_key, expected_key_len, iv) == RLC_OK, end);
-			bc_aes_cbc_dec(out, &out_len, ct, ct_len, pskdh_key, expected_key_len, iv); // got an error here. Probably from padding. Remove test for now and fix later.
+			aes_256_cbc_encrypt(msg, msg_len, pskdh_key, iv, ct);
+			aes_256_cbc_decrypt(ct, ct_len, pskdh_key, iv, out);
 			TEST_ASSERT(memcmp(msg, out, msg_len) == 0, end);
 		}
 		TEST_END;
@@ -117,12 +115,13 @@ int pskdh_test(void)
 		BENCH_END;
 		BENCH_RUN("psk_dh_aes_enc")
 		{
-			BENCH_ADD(bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, pskdh_key, expected_key_len, iv));
+			BENCH_ADD(aes_256_cbc_encrypt(msg, msg_len, pskdh_key, iv, ct));
+
 		}
 		BENCH_END;
 		BENCH_RUN("psk_dh_aes_dec")
 		{
-			BENCH_ADD(bc_aes_cbc_dec(out, &out_len, ct, ct_len, pskdh_key, expected_key_len, iv));
+			BENCH_ADD(aes_256_cbc_decrypt(ct, ct_len, pskdh_key, iv, out));
 		}
 		BENCH_END;
 	}
@@ -139,23 +138,23 @@ end:
 }
 
 /**
- * Encrypts an aes key with IBE and also encrypts a message with the aes key 
+ * Encrypts an aes key with IBE and also encrypts a message with the aes key
  */
-void ibe_enc_with_aes(uint8_t *out, size_t *out_len, const uint8_t *in, size_t in_len,
+void ibe_enc_with_aes(uint8_t *out, size_t *out_len, uint8_t *in, size_t in_len,
 					  const char *id, const g1_t pub, uint8_t *ct, size_t ct_len)
 {
 	cp_ibe_enc(out, out_len, in, in_len, id, pub);
-	bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, in, in_len, iv);
+	aes_256_cbc_encrypt(msg, msg_len, in, iv, ct);
 }
 
 /**
- * Decrypts an aes key with IBE and also decrypts a message with the aes key 
+ * Decrypts an aes key with IBE and also decrypts a message with the aes key
  */
 void ibe_dec_with_aes(uint8_t *out, size_t out_len, const uint8_t *in, size_t in_len,
-					  const g2_t prv, uint8_t *ct, size_t ct_len, uint8_t *plaintext)
+					  const g2_t prv, uint8_t *ct, size_t ct_len, uint8_t *pt, size_t pt_len)
 {
 	cp_ibe_dec(out, &out_len, in, in_len, prv);
-	bc_aes_cbc_dec(plaintext, &msg_len, ct, ct_len, out, out_len, iv);
+	aes_256_cbc_decrypt(ct, ct_len, out, iv, pt);
 }
 
 int ibe_test(void)
@@ -174,7 +173,8 @@ int ibe_test(void)
 
 	size_t ct_len = msg_len + 2 * RLC_FP_BYTES + 1;
 	uint8_t *ct = malloc(ct_len);
-	uint8_t *plaintext = malloc(msg_len);
+	size_t plaintext_len = msg_len;
+	uint8_t *plaintext = malloc(plaintext_len);
 
 	int result;
 
@@ -192,10 +192,10 @@ int ibe_test(void)
 		{
 			TEST_ASSERT(cp_ibe_gen(s, pub) == RLC_OK, end);
 			TEST_ASSERT(cp_ibe_gen_prv(prv, id, s) == RLC_OK, end);
-			bc_aes_cbc_enc(ct, &ct_len, msg, msg_len, aes_key, aes_key_length, iv);
+			aes_256_cbc_encrypt(msg, msg_len, aes_key, iv, ct);
 			TEST_ASSERT(cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub) == RLC_OK, end);
 			TEST_ASSERT(cp_ibe_dec(out_aes_key, &aes_key_length, ct_aes_key, ct_aes_key_len, prv) == RLC_OK, end);
-			bc_aes_cbc_dec(plaintext, &ct_len, ct, ct_len, out_aes_key, aes_key_length, iv);
+			aes_256_cbc_decrypt(ct, ct_len, out_aes_key, iv, plaintext);
 			TEST_ASSERT(memcmp(aes_key, out_aes_key, aes_key_length) == 0, end)
 			TEST_ASSERT(memcmp(msg, plaintext, msg_len) == 0, end);
 		}
@@ -213,15 +213,15 @@ int ibe_test(void)
 		}
 		BENCH_END;
 
-		BENCH_RUN("cp_ibe_enc")
+		BENCH_RUN("ibe_enc")
 		{
 			BENCH_ADD(ibe_enc_with_aes(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub, ct, ct_len));
 		}
 		BENCH_END;
 
-		BENCH_RUN("cp_ibe_dec")
+		BENCH_RUN("ibe_dec")
 		{
-			BENCH_ADD(ibe_dec_with_aes(out_aes_key, aes_key_length, ct_aes_key, ct_aes_key_len, prv, ct, ct_len, plaintext));
+			BENCH_ADD(ibe_dec_with_aes(out_aes_key, aes_key_length, ct_aes_key, ct_aes_key_len, prv, ct, ct_len, plaintext, plaintext_len));
 		}
 		BENCH_END;
 	}
@@ -238,6 +238,7 @@ end:
 	free(ct_aes_key);
 	free(out_aes_key);
 	free(ct);
+	free(plaintext);
 	return code;
 }
 
@@ -447,16 +448,9 @@ int main(void)
 		return 1;
 	}
 
-	// if (aes_test() != 0)
-	// {
-	// 	core_clean();
-	// 	return 1;
-	// }
-
 	util_banner("Testing protocols based on pairings:\n", 0);
 	if (pc_param_set_any() == RLC_OK)
 	{ // Configures some set of pairing-friendly curve parameters for the current security level.
-
 		if (ibe_test() != RLC_OK)
 		{
 			core_clean();
@@ -487,8 +481,7 @@ int main(void)
 // For testing the c test files from the relic library has been compiled into runnables in relic-target/bin
 
 // For including a file like pskdh you would need to do,
-// gcc -o benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c && ./benchmark
-// gcc -o bin/benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c && ./bin/benchmark
+// gcc -o bin/benchmark benchmark.c -I ../relic-0.7.0/include -I relic-target/include relic-target/lib/librelic_s.a -I/opt/homebrew/opt/openssl@3/include -L/opt/homebrew/opt/openssl@3/lib -lcrypto pskdh.c ibbe.c aes.c && ./bin/benchmark
 
 // For linux
-// gcc -o benchmark benchmark.c pskdh.c ibbe.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./benchmark
+// gcc -o benchmark benchmark.c pskdh.c ibbe.c aes.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && ./benchmark
