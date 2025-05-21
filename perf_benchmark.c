@@ -131,8 +131,14 @@ void measure_method(const char *name, void (*func)(), int runs)
     pid_t pid = fork(); // starts new process to reset mem usage
     if (pid == 0)
     {
+        struct timespec start_time, end_time;
+        clock_gettime(CLOCK_MONOTONIC, &start_time);
         long start = read_energy();
         measure_cycles(name, func, runs);
+        long seconds = end_time.tv_sec - start_time.tv_sec;
+        long nanoseconds = end_time.tv_nsec - start_time.tv_nsec;
+        long total_microseconds = (seconds * 1e6) + (nanoseconds / 1e3);
+        printf("%s: Avg Time: %ld microseconds\n", name, total_microseconds / runs);
         printf("%s: %ld Kb RAM usage\n", name, get_peak_mem_usage());
         long end = read_energy();
         long microjoules = end - start;
