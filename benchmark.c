@@ -165,13 +165,13 @@ int ibe_test(void)
 	g2_t prv;
 
 	uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
-	size_t aes_key_length = 32;
-	size_t ct_aes_key_len = aes_key_length + 2 * RLC_FP_BYTES + 1;
+	size_t aes_key_len = 32;
+	size_t ct_aes_key_len = aes_key_len + 2 * RLC_FP_BYTES + 1;
 	uint8_t *ct_aes_key = malloc(ct_aes_key_len);
-	uint8_t *out_aes_key = malloc(aes_key_length);
+	uint8_t *out_aes_key = malloc(ct_aes_key_len);
 	char *id = "Alice";
 
-	size_t ct_len = msg_len + 2 * RLC_FP_BYTES + 1;
+	size_t ct_len = ((msg_len + 16) / 16) * 16;
 	uint8_t *ct = malloc(ct_len);
 	size_t plaintext_len = msg_len;
 	uint8_t *plaintext = malloc(plaintext_len);
@@ -193,10 +193,10 @@ int ibe_test(void)
 			TEST_ASSERT(cp_ibe_gen(s, pub) == RLC_OK, end);
 			TEST_ASSERT(cp_ibe_gen_prv(prv, id, s) == RLC_OK, end);
 			aes_256_cbc_encrypt(msg, msg_len, aes_key, iv, ct);
-			TEST_ASSERT(cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub) == RLC_OK, end);
-			TEST_ASSERT(cp_ibe_dec(out_aes_key, &aes_key_length, ct_aes_key, ct_aes_key_len, prv) == RLC_OK, end);
+			TEST_ASSERT(cp_ibe_enc(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_len, id, pub) == RLC_OK, end);
+			TEST_ASSERT(cp_ibe_dec(out_aes_key, &aes_key_len, ct_aes_key, ct_aes_key_len, prv) == RLC_OK, end);
 			aes_256_cbc_decrypt(ct, ct_len, out_aes_key, iv, plaintext);
-			TEST_ASSERT(memcmp(aes_key, out_aes_key, aes_key_length) == 0, end)
+			TEST_ASSERT(memcmp(aes_key, out_aes_key, aes_key_len) == 0, end)
 			TEST_ASSERT(memcmp(msg, plaintext, msg_len) == 0, end);
 		}
 		TEST_END;
