@@ -7,6 +7,7 @@
 #include "relic_test.h"
 #include "pskdh.h"
 #include "ibbe.h"
+#include "aes.h"
 #include <linux/perf_event.h>
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -135,6 +136,7 @@ void measure_method(const char *name, void (*func)(), int runs)
         clock_gettime(CLOCK_MONOTONIC, &start_time);
         long start = read_energy();
         measure_cycles(name, func, runs);
+        clock_gettime(CLOCK_MONOTONIC, &end_time);
         long seconds = end_time.tv_sec - start_time.tv_sec;
         long nanoseconds = end_time.tv_nsec - start_time.tv_nsec;
         long total_microseconds = (seconds * 1e6) + (nanoseconds / 1e3);
@@ -230,9 +232,6 @@ void bls_test()
     g2_set_infty(q);
     cp_bls_ver(s, msg, msg_len, q);
 
-    bn_free(d);
-    g1_free(s);
-    g2_free(q);
     bn_free(d);
     g1_free(s);
     g2_free(q);
