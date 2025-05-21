@@ -170,10 +170,10 @@ void pskdh_test()
 
 void ibe_test()
 {
-    bn_t s;
-    g1_t pub;
-    g2_t prv;
-    uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
+	bn_t s;
+	g1_t pub;
+	g2_t prv;
+	uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
 	size_t aes_key_length = 32;
 	size_t ct_aes_key_len = aes_key_length + 2 * RLC_FP_BYTES + 1;
 	uint8_t *ct_aes_key = malloc(ct_aes_key_len);
@@ -182,7 +182,8 @@ void ibe_test()
 
 	size_t ct_len = msg_len + 2 * RLC_FP_BYTES + 1;
 	uint8_t *ct = malloc(ct_len);
-	uint8_t *plaintext = malloc(msg_len);
+	size_t plaintext_len = msg_len;
+	uint8_t *plaintext = malloc(plaintext_len);
 
     int result;
 
