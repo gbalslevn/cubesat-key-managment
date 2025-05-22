@@ -230,9 +230,10 @@ void ecdsa_test()
     bn_new(s);
     ec_new(q);
 
+	md_map(h, msg, msg_len);
     cp_ecdsa_gen(d, q);
-    cp_ecdsa_sig(r, s, msg, msg_len, 1, d);
-    cp_ecdsa_ver(r, s, msg, msg_len, 1, q);
+    cp_ecdsa_sig(r, s, h, sizeof(h), 1, d);
+    cp_ecdsa_ver(r, s, h, sizeof(h), 1, q);
 
     bn_free(d);
     bn_free(r);

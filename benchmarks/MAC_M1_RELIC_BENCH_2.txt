@@ -45,25 +45,29 @@
 -- Testing protocols:
 
 Testing if hkdf is succesfull...                                              [PASS]
-BENCH: hkdf                             = 3 microsec
+BENCH: hkdf                             = 5 microsec
 Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
-BENCH: psk_dh_gen                       = 90 microsec
-BENCH: psk_dh_aes_enc                   = 5613 microsec
-BENCH: psk_dh_aes_dec                   = 895 microsec
+BENCH: psk_dh_gen                       = 92 microsec
+BENCH: psk_dh_aes_enc                   = 5603 microsec
+BENCH: psk_dh_aes_dec                   = 891 microsec
 
 -- Testing protocols based on pairings:
 
 Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
-BENCH: master_ibe_gen                   = 196 microsec
-BENCH: usk_ibe_gen                      = 2000 microsec
-BENCH: ibe_enc                          = 9925 microsec
-BENCH: ibe_dec                          = 3160 microsec
+BENCH: master_ibe_gen                   = 195 microsec
+BENCH: usk_ibe_gen                      = 1987 microsec
+BENCH: ibe_enc                          = 9938 microsec
+BENCH: ibe_dec                          = 3131 microsec
+Testing if ecdsa signature is correct...                                      [PASS]
+BENCH: ecdsa_gen                        = 194 microsec
+BENCH: ecdsa_sign                       = 319 microsec
+BENCH: ecdsa_ver                        = 921 microsec
 Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
-BENCH: cp_bls_gen                       = 550 microsec
-BENCH: cp_bls_sign                      = 49526 microsec
-BENCH: cp_bls_ver                       = 51938 microsec
+BENCH: cp_bls_gen                       = 552 microsec
+BENCH: cp_bls_sign                      = 955 microsec
+BENCH: cp_bls_ver                       = 3589 microsec
 Testing if Delerablée IBBE scheme is correct...                              [PASS]
-BENCH: ibbe_setup                       = 69297 microsec
-BENCH: ibbe_extract                     = 612 microsec
-BENCH: ibbe_encrypt                     = 9304 microsec
-BENCH: ibbe_decrypt                     = 7546 microsec
+BENCH: ibbe_setup                       = 69855 microsec
+BENCH: ibbe_extract                     = 614 microsec
+BENCH: ibbe_encrypt                     = 9471 microsec
+BENCH: ibbe_decrypt                     = 7526 microsec

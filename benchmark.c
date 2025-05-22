@@ -262,9 +262,10 @@ static int ecdsa_test(void)
 
 		TEST_CASE("ecdsa signature is correct")
 		{
+			md_map(h, msg, msg_len);
 			TEST_ASSERT(cp_ecdsa_gen(d, q) == RLC_OK, end);
-			TEST_ASSERT(cp_ecdsa_sig(r, s, msg, msg_len, 1, d) == RLC_OK, end);
-			TEST_ASSERT(cp_ecdsa_ver(r, s, msg, msg_len, 1, q) == 1, end);
+			TEST_ASSERT(cp_ecdsa_sig(r, s, h, sizeof(h), 1, d) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdsa_ver(r, s, h, sizeof(h), 1, q) == 1, end);
 		}
 		TEST_END;
 
@@ -276,14 +277,15 @@ static int ecdsa_test(void)
 
 		BENCH_RUN("ecdsa_sign")
 		{
-			// 1 means it hashes before
-			BENCH_ADD(cp_ecdsa_sig(r, s, msg, msg_len, 1, d));
+			md_map(h, msg, msg_len);
+			BENCH_ADD(cp_ecdsa_sig(r, s, h, sizeof(h), 1, d));
 		}
 		BENCH_END;
 
 		BENCH_RUN("ecdsa_ver")
 		{
-			BENCH_ADD(cp_ecdsa_ver(r, s, msg, msg_len, 1, q));
+			md_map(h, msg, msg_len);
+			BENCH_ADD(cp_ecdsa_ver(r, s, h, sizeof(h), 1, q));
 		}
 		BENCH_END;
 	}
@@ -313,9 +315,6 @@ int bls_test(void)
 	g1_null(s);
 	g2_null(q);
 
-	// Hash the message
-	md_map(h, msg, msg_len);
-
 	RLC_TRY
 	{
 		bn_new(d);
@@ -324,10 +323,11 @@ int bls_test(void)
 
 		TEST_CASE("boneh-lynn-schacham short signature is correct")
 		{
+			md_map(h, msg, msg_len);
 			TEST_ASSERT(cp_bls_gen(d, q) == RLC_OK, end);
 			TEST_ASSERT(cp_bls_sig(s, h, sizeof(h), d) == RLC_OK, end);
 			TEST_ASSERT(cp_bls_ver(s, h, sizeof(h), q) == 1, end);
-			// Check adversarial signature by changing hash h and using another public key q. 
+			// Check adversarial signature by changing hash h and using another public key q.
 			memset(h, 0, sizeof(h));
 			g2_set_infty(q);
 			TEST_ASSERT(cp_bls_ver(s, h, sizeof(h), q) == 0, end);
@@ -342,12 +342,14 @@ int bls_test(void)
 
 		BENCH_RUN("cp_bls_sign")
 		{
+			md_map(h, msg, msg_len);
 			BENCH_ADD(cp_bls_sig(s, h, sizeof(h), d));
 		}
 		BENCH_END;
 
 		BENCH_RUN("cp_bls_ver")
 		{
+			md_map(h, msg, msg_len);
 			BENCH_ADD(cp_bls_ver(s, h, sizeof(h), q));
 		}
 		BENCH_END;
