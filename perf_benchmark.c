@@ -286,7 +286,7 @@ int main(void)
 
     load_file_as_uint8("6mB.txt", &msg, &msg_len);
 
-    // printf("**** Average CPU cycles and max RAM usage for each method in %d runs ****\n", DEFAULT_RUNS);
+    printf("**** Average CPU cycles, power usage and max RAM in %d runs ****\n", DEFAULT_RUNS);
     measure_method("HKDF", hkdf_test, DEFAULT_RUNS);
     measure_method("PSK-DH", pskdh_test, DEFAULT_RUNS);
 

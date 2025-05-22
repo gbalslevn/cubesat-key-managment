@@ -1,0 +1,21 @@
+For 1000 runs
+HKDF: 20913 CPU cycles
+HKDF: Avg Time: 47 microseconds
+HKDF: 10568 Kb RAM usage
+Energy used: 126 microjoules
+PSK-DH: 817634 CPU cycles
+PSK-DH: Avg Time: 212 microseconds
+PSK-DH: 11340 Kb RAM usage
+Energy used: 3737 microjoules
+IBE: 65558386 CPU cycles
+IBE: Avg Time: 18503 microseconds
+IBE: 23364 Kb RAM usage
+Energy used: 290227 microjoules
+BLS: 396827477 CPU cycles
+BLS: Avg Time: 102108 microseconds
+BLS: 8972 Kb RAM usage
+Energy used: 1782482 microjoules
+IBBE: 214824276 CPU cycles
+IBBE: Avg Time: 55270 microseconds
+IBBE: 23780 Kb RAM usage
+Energy used: 999008 microjoules

@@ -215,13 +215,13 @@ int ibe_test(void)
 
 		BENCH_RUN("ibe_enc")
 		{
-			BENCH_ADD(ibe_enc_with_aes(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_length, id, pub, ct, ct_len));
+			BENCH_ADD(ibe_enc_with_aes(ct_aes_key, &ct_aes_key_len, aes_key, aes_key_len, id, pub, ct, ct_len));
 		}
 		BENCH_END;
 
 		BENCH_RUN("ibe_dec")
 		{
-			BENCH_ADD(ibe_dec_with_aes(out_aes_key, aes_key_length, ct_aes_key, ct_aes_key_len, prv, ct, ct_len, plaintext, plaintext_len));
+			BENCH_ADD(ibe_dec_with_aes(out_aes_key, aes_key_len, ct_aes_key, ct_aes_key_len, prv, ct, ct_len, plaintext, plaintext_len));
 		}
 		BENCH_END;
 	}
