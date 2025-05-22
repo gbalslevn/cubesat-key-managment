@@ -19,3 +19,146 @@ IBBE: 214824276 CPU cycles
 IBBE: Avg Time: 55270 microseconds
 IBBE: 23780 Kb RAM usage
 Energy used: 999008 microjoules
+
+
+-- RELIC 0.7.0 configuration:
+
+** Allocation mode: AUTO
+
+** Arithmetic backend: easy
+
+** Benchmarking options:
+   Number of times: 100
+
+** Multiple precision module options:
+   Precision: 16384 bits, 256 words
+   Arithmetic method: COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
+
+** Prime field module options:
+   Prime size: 256 bits, 4 words
+   Arithmetic method: INTEG;INTEG;INTEG;MONTY;MONTY;JMPDS;SLIDE
+
+** Prime field extension module options:
+   Arithmetic method: INTEG;INTEG;LAZYR
+
+** Prime elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER;SSWUM
+
+** Bilinear pairing module options:
+   Arithmetic method: LAZYR;OATEP
+
+** Binary field module options:
+   Polynomial size: 283 bits, 5 words
+   Arithmetic method: LODAH;QUICK;QUICK;QUICK;QUICK;QUICK;EXGCD;SLIDE;QUICK
+
+** Binary elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Elliptic Curve Cryptography module options:
+   Arithmetic method: PRIME
+
+** Edwards Curve Cryptography module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Hash function module options:
+   Chosen method: SH256
+
+
+-- Testing protocols:
+
+Testing if hkdf is succesfull...                                              [PASS]
+BENCH: hkdf                             = 5 microsec
+Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
+BENCH: psk_dh_gen                       = 209 microsec
+BENCH: psk_dh_aes_enc                   = 9570 microsec
+BENCH: psk_dh_aes_dec                   = 1372 microsec
+
+-- Testing protocols based on pairings:
+
+Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
+BENCH: master_ibe_gen                   = 95 microsec
+BENCH: usk_ibe_gen                      = 910 microsec
+BENCH: ibe_enc                          = 12547 microsec
+BENCH: ibe_dec                          = 3049 microsec
+Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
+BENCH: cp_bls_gen                       = 363 microsec
+BENCH: cp_bls_sign                      = 33025 microsec
+BENCH: cp_bls_ver                       = 35185 microsec
+Testing if Delerablée IBBE scheme is correct...                              [PASS]
+BENCH: ibbe_setup                       = 36903 microsec
+BENCH: ibbe_extract                     = 257 microsec
+BENCH: ibbe_encrypt                     = 12516 microsec
+BENCH: ibbe_decrypt                     = 6325 microsec
+
+
+I also ran it for 10.000 iterations but ran the ibbe encrypt and decrypt process was killed. Dont know why. 
+Just ran it for 100 instead, it seems to be kind of the same stats. 
+
+**** FAILED with 10.000 iterations *****
+-- RELIC 0.7.0 configuration:
+
+** Allocation mode: AUTO
+
+** Arithmetic backend: easy
+
+** Benchmarking options:
+   Number of times: 10000
+
+** Multiple precision module options:
+   Precision: 16384 bits, 256 words
+   Arithmetic method: COMBA;COMBA;MONTY;SLIDE;BASIC;BASIC
+
+** Prime field module options:
+   Prime size: 256 bits, 4 words
+   Arithmetic method: INTEG;INTEG;INTEG;MONTY;MONTY;JMPDS;SLIDE
+
+** Prime field extension module options:
+   Arithmetic method: INTEG;INTEG;LAZYR
+
+** Prime elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER;SSWUM
+
+** Bilinear pairing module options:
+   Arithmetic method: LAZYR;OATEP
+
+** Binary field module options:
+   Polynomial size: 283 bits, 5 words
+   Arithmetic method: LODAH;QUICK;QUICK;QUICK;QUICK;QUICK;EXGCD;SLIDE;QUICK
+
+** Binary elliptic curve module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Elliptic Curve Cryptography module options:
+   Arithmetic method: PRIME
+
+** Edwards Curve Cryptography module options:
+   Arithmetic method: PROJC;LWNAF;COMBS;INTER
+
+** Hash function module options:
+   Chosen method: SH256
+
+
+-- Testing protocols:
+
+Testing if hkdf is succesfull...                                              [PASS]
+BENCH: hkdf                             = 4 microsec
+Testing if pskdh gen and encryption/decryption is correct...                  [PASS]
+BENCH: psk_dh_gen                       = 206 microsec
+BENCH: psk_dh_aes_enc                   = 9581 microsec
+BENCH: psk_dh_aes_dec                   = 1373 microsec
+
+-- Testing protocols based on pairings:
+
+Testing if boneh-franklin identity-based encryption/decryption is correct...  [PASS]
+BENCH: master_ibe_gen                   = 95 microsec
+BENCH: usk_ibe_gen                      = 926 microsec
+BENCH: ibe_enc                          = 12550 microsec
+BENCH: ibe_dec                          = 3042 microsec
+Testing if boneh-lynn-schacham short signature is correct...                  [PASS]
+BENCH: cp_bls_gen                       = 362 microsec
+BENCH: cp_bls_sign                      = 32988 microsec
+BENCH: cp_bls_ver                       = 35211 microsec
+Testing if Delerablée IBBE scheme is correct...                              [PASS]
+BENCH: ibbe_setup                       = 36831 microsec
+BENCH: ibbe_extract                     = 247 microsec
+BENCH: ibbe_encrypt                     = Killed

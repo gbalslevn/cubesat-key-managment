@@ -20,47 +20,47 @@ static int DEFAULT_RUNS = 1000;
 
 int load_file_as_uint8(const char *filename, uint8_t **buffer, size_t *length)
 {
-	FILE *file = fopen(filename, "rb"); // open in binary mode
-	if (!file)
-	{
-		perror("Failed to open file");
-		return -1;
-	}
+    FILE *file = fopen(filename, "rb"); // open in binary mode
+    if (!file)
+    {
+        perror("Failed to open file");
+        return -1;
+    }
 
-	// Get file size
-	fseek(file, 0, SEEK_END);
-	*length = ftell(file);
-	fseek(file, 0, SEEK_SET);
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    *length = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-	*buffer = (uint8_t *)malloc(*length);
-	if (!*buffer)
-	{
-		perror("Memory allocation failed");
-		fclose(file);
-		return -1;
-	}
+    *buffer = (uint8_t *)malloc(*length);
+    if (!*buffer)
+    {
+        perror("Memory allocation failed");
+        fclose(file);
+        return -1;
+    }
 
-	// Read the file into buffer
-	size_t read_bytes = fread(*buffer, 1, *length, file);
-	if (read_bytes != *length)
-	{
-		perror("File read failed");
-		free(*buffer);
-		fclose(file);
-		return -1;
-	}
+    // Read the file into buffer
+    size_t read_bytes = fread(*buffer, 1, *length, file);
+    if (read_bytes != *length)
+    {
+        perror("File read failed");
+        free(*buffer);
+        fclose(file);
+        return -1;
+    }
 
-	fclose(file);
-	return 0;
+    fclose(file);
+    return 0;
 }
 
 uint8_t *msg;
 size_t msg_len;
 int8_t iv_value[16] = {
-	0x00, 0x01, 0x02, 0x03,
-	0x04, 0x05, 0x06, 0x07,
-	0x08, 0x09, 0x0A, 0x0B,
-	0x0C, 0x0D, 0x0E, 0x0F};
+    0x00, 0x01, 0x02, 0x03,
+    0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0A, 0x0B,
+    0x0C, 0x0D, 0x0E, 0x0F};
 uint8_t *iv = (uint8_t *)iv_value;
 
 static long perf_event_open(struct perf_event_attr *pe, pid_t pid,
@@ -112,9 +112,11 @@ void measure_cycles(const char *name, void (*func)(), int runs)
     close(fd);
 }
 
-long read_energy() {
+long read_energy()
+{
     FILE *fp = fopen("/sys/class/powercap/intel-rapl:0/energy_uj", "r");
-    if (!fp) {
+    if (!fp)
+    {
         perror("fopen");
         exit(1);
     }
@@ -170,20 +172,20 @@ void pskdh_test()
 
 void ibe_test()
 {
-	bn_t s;
-	g1_t pub;
-	g2_t prv;
-	uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
-	size_t aes_key_len = 32;
-	size_t ct_aes_key_len = aes_key_len + 2 * RLC_FP_BYTES + 1;
-	uint8_t *ct_aes_key = malloc(ct_aes_key_len);
-	uint8_t *out_aes_key = malloc(ct_aes_key_len);
-	char *id = "Alice";
+    bn_t s;
+    g1_t pub;
+    g2_t prv;
+    uint8_t aes_key[] = "SECRET_AES_KEY_1234567890111213";
+    size_t aes_key_len = 32;
+    size_t ct_aes_key_len = aes_key_len + 2 * RLC_FP_BYTES + 1;
+    uint8_t *ct_aes_key = malloc(ct_aes_key_len);
+    uint8_t *out_aes_key = malloc(ct_aes_key_len);
+    char *id = "Alice";
 
-	size_t ct_len = ((msg_len + 16) / 16) * 16;
-	uint8_t *ct = malloc(ct_len);
-	size_t plaintext_len = msg_len;
-	uint8_t *plaintext = malloc(plaintext_len);
+    size_t ct_len = ((msg_len + 16) / 16) * 16;
+    uint8_t *ct = malloc(ct_len);
+    size_t plaintext_len = msg_len;
+    uint8_t *plaintext = malloc(plaintext_len);
 
     int result;
 
@@ -211,6 +213,33 @@ void ibe_test()
     free(plaintext);
 }
 
+void ecdsa_test()
+{
+    int code = RLC_ERR;
+    bn_t d, r, s;
+    ec_t q;
+    uint8_t m[5] = {0, 1, 2, 3, 4}, h[RLC_MD_LEN];
+
+    bn_null(d);
+    bn_null(r);
+    bn_null(s);
+    ec_null(q);
+
+    bn_new(d);
+    bn_new(r);
+    bn_new(s);
+    ec_new(q);
+
+    cp_ecdsa_gen(d, q);
+    cp_ecdsa_sig(r, s, msg, msg_len, 1, d);
+    cp_ecdsa_ver(r, s, msg, msg_len, 1, q);
+
+    bn_free(d);
+    bn_free(r);
+    bn_free(s);
+    ec_free(q);
+}
+
 void bls_test()
 {
     bn_t d;
@@ -225,13 +254,11 @@ void bls_test()
     g1_new(s);
     g2_new(q);
 
+    md_map(h, msg, msg_len);
+
     cp_bls_gen(d, q);
-    cp_bls_sig(s, msg, msg_len, d);
-    cp_bls_ver(s, msg, msg_len, q);
-    /* Check adversarial signature. */
-    memset(msg, 0, msg_len);
-    g2_set_infty(q);
-    cp_bls_ver(s, msg, msg_len, q);
+    cp_bls_sig(s, h, sizeof(h), d);
+    cp_bls_ver(s, h, sizeof(h), q);
 
     bn_free(d);
     g1_free(s);
@@ -247,14 +274,14 @@ void ibbe_test()
     size_t out_len = sizeof(out);
     // char *ids[] = {"Alice", "Bob", "Charlie"};
     char *ids[] = {
-		"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hannah",
-		"Ian", "Jack", "Karen", "Liam", "Mona", "Nathan", "Olivia", "Paul",
-		"Quinn", "Rachel", "Sam", "Tina", "Uma", "Victor", "Wendy", "Xander",
-		"Yara", "Zane", "Abby", "Ben", "Cindy", "Derek", "Ella", "Fred",
-		"Gina", "Harry", "Isla", "Jake", "Kylie", "Leo", "Mia", "Noah",
-		"Oscar", "Penny", "Quincy", "Rita", "Steve", "Tara", "Ulysses", "Vera",
-		"Will", "Xenia", "Yusuf", "Zoe", "Amber", "Brandon", "Clara", "Dylan",
-		"Elena", "Felix", "Georgia", "Henry", "Ivy", "Joel", "Kate", "Logan"};
+        "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hannah",
+        "Ian", "Jack", "Karen", "Liam", "Mona", "Nathan", "Olivia", "Paul",
+        "Quinn", "Rachel", "Sam", "Tina", "Uma", "Victor", "Wendy", "Xander",
+        "Yara", "Zane", "Abby", "Ben", "Cindy", "Derek", "Ella", "Fred",
+        "Gina", "Harry", "Isla", "Jake", "Kylie", "Leo", "Mia", "Noah",
+        "Oscar", "Penny", "Quincy", "Rita", "Steve", "Tara", "Ulysses", "Vera",
+        "Will", "Xenia", "Yusuf", "Zoe", "Amber", "Brandon", "Clara", "Dylan",
+        "Elena", "Felix", "Georgia", "Henry", "Ivy", "Joel", "Kate", "Logan"};
 
     ibbe_setup(&params, 256, 70);
     ibbe_extract(&prv, ids[0], &params);
@@ -293,6 +320,7 @@ int main(void)
     if (pc_param_set_any() == RLC_OK)
     {
         measure_method("IBE", ibe_test, DEFAULT_RUNS);
+        measure_method("ECDSA", ecdsa_test, DEFAULT_RUNS);
         measure_method("BLS", bls_test, DEFAULT_RUNS);
         measure_method("IBBE", ibbe_test, DEFAULT_RUNS);
     }
@@ -304,15 +332,11 @@ int main(void)
 // For linux
 // sudo gcc -o perf_benchmark perf_benchmark.c pskdh.c ibbe.c aes.c -I../relic/include -I../relic-target/include ../relic-target/lib/librelic_s.a -I/home/linuxbrew/.linuxbrew/opt/openssl@3/include -L/home/linuxbrew/.linuxbrew/opt/openssl@3/lib -lcrypto && sudo ./perf_benchmark
 
+// Tried to divide the ibbe method into different parts so i could measure each ram usage. It did not work and seemed to not be able to encrypt and decrpyt.
+// Decided to keep it simple and just measure the whole ibbe_test and then estimate CPU and RAM usage based on time it takes to finish the method.
+// The peak RAM is okay to measure for all methods (like ibbe_test) and not child methods (like ibbe_extract) and not for an individual one. We can argue that you need at least this amount of RAM to implement the protocol on a device.
 
-
-
-
-// Tried to divide the ibbe method into different parts so i could measure each ram usage. It did not work and seemed to not be able to encrypt and decrpyt. 
-// Decided to keep it simple and just measure the whole ibbe_test and then estimate CPU and RAM usage based on time it takes to finish the method. 
-// The peak RAM is okay to measure for all methods (like ibbe_test) and not child methods (like ibbe_extract) and not for an individual one. We can argue that you need at least this amount of RAM to implement the protocol on a device. 
-
-// 
+//
 // ibbe_params_t params;
 // ibbe_prv_t prv;
 // uint8_t msg[] = "Hello IBBE!";

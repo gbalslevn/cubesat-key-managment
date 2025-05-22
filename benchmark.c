@@ -116,7 +116,6 @@ int pskdh_test(void)
 		BENCH_RUN("psk_dh_aes_enc")
 		{
 			BENCH_ADD(aes_256_cbc_encrypt(msg, msg_len, pskdh_key, iv, ct));
-
 		}
 		BENCH_END;
 		BENCH_RUN("psk_dh_aes_dec")
@@ -242,9 +241,70 @@ end:
 	return code;
 }
 
+static int ecdsa_test(void)
+{
+	int code = RLC_ERR;
+	bn_t d, r, s;
+	ec_t q;
+	uint8_t m[5] = {0, 1, 2, 3, 4}, h[RLC_MD_LEN];
+
+	bn_null(d);
+	bn_null(r);
+	bn_null(s);
+	ec_null(q);
+
+	RLC_TRY
+	{
+		bn_new(d);
+		bn_new(r);
+		bn_new(s);
+		ec_new(q);
+
+		TEST_CASE("ecdsa signature is correct")
+		{
+			TEST_ASSERT(cp_ecdsa_gen(d, q) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdsa_sig(r, s, msg, msg_len, 1, d) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdsa_ver(r, s, msg, msg_len, 1, q) == 1, end);
+		}
+		TEST_END;
+
+		BENCH_RUN("ecdsa_gen")
+		{
+			BENCH_ADD(cp_ecdsa_gen(d, q));
+		}
+		BENCH_END;
+
+		BENCH_RUN("ecdsa_sign")
+		{
+			// 1 means it hashes before
+			BENCH_ADD(cp_ecdsa_sig(r, s, msg, msg_len, 1, d));
+		}
+		BENCH_END;
+
+		BENCH_RUN("ecdsa_ver")
+		{
+			BENCH_ADD(cp_ecdsa_ver(r, s, msg, msg_len, 1, q));
+		}
+		BENCH_END;
+	}
+	RLC_CATCH_ANY
+	{
+		RLC_ERROR(end);
+	}
+	code = RLC_OK;
+
+end:
+	bn_free(d);
+	bn_free(r);
+	bn_free(s);
+	ec_free(q);
+	return code;
+}
+
 int bls_test(void)
 {
 	int code = RLC_ERR;
+	uint8_t h[RLC_MD_LEN];
 	bn_t d;
 	g1_t s;
 	g2_t q;
@@ -252,6 +312,9 @@ int bls_test(void)
 	bn_null(d);
 	g1_null(s);
 	g2_null(q);
+
+	// Hash the message
+	md_map(h, msg, msg_len);
 
 	RLC_TRY
 	{
@@ -262,12 +325,12 @@ int bls_test(void)
 		TEST_CASE("boneh-lynn-schacham short signature is correct")
 		{
 			TEST_ASSERT(cp_bls_gen(d, q) == RLC_OK, end);
-			TEST_ASSERT(cp_bls_sig(s, msg, msg_len, d) == RLC_OK, end);
-			TEST_ASSERT(cp_bls_ver(s, msg, msg_len, q) == 1, end);
-			/* Check adversarial signature. */
-			memset(msg, 0, msg_len);
+			TEST_ASSERT(cp_bls_sig(s, h, sizeof(h), d) == RLC_OK, end);
+			TEST_ASSERT(cp_bls_ver(s, h, sizeof(h), q) == 1, end);
+			// Check adversarial signature by changing hash h and using another public key q. 
+			memset(h, 0, sizeof(h));
 			g2_set_infty(q);
-			TEST_ASSERT(cp_bls_ver(s, msg, msg_len, q) == 0, end);
+			TEST_ASSERT(cp_bls_ver(s, h, sizeof(h), q) == 0, end);
 		}
 		TEST_END;
 
@@ -279,13 +342,13 @@ int bls_test(void)
 
 		BENCH_RUN("cp_bls_sign")
 		{
-			BENCH_ADD(cp_bls_sig(s, msg, msg_len, d));
+			BENCH_ADD(cp_bls_sig(s, h, sizeof(h), d));
 		}
 		BENCH_END;
 
 		BENCH_RUN("cp_bls_ver")
 		{
-			BENCH_ADD(cp_bls_ver(s, msg, msg_len, q));
+			BENCH_ADD(cp_bls_ver(s, h, sizeof(h), q));
 		}
 		BENCH_END;
 
@@ -452,6 +515,12 @@ int main(void)
 	if (pc_param_set_any() == RLC_OK)
 	{ // Configures some set of pairing-friendly curve parameters for the current security level.
 		if (ibe_test() != RLC_OK)
+		{
+			core_clean();
+			return 1;
+		}
+
+		if (ecdsa_test() != RLC_OK)
 		{
 			core_clean();
 			return 1;
