@@ -127,7 +127,7 @@ long read_energy()
 }
 
 /**
- * Measures a methods average CPU cycles, power consumption and peak RAM usage after 'runs' iterations
+ * Measures a methods average CPU cycles, power consumption, time and peak RAM usage after 'runs' iterations
  */
 void measure_method(const char *name, void (*func)(), int runs)
 {
@@ -142,11 +142,11 @@ void measure_method(const char *name, void (*func)(), int runs)
         long seconds = end_time.tv_sec - start_time.tv_sec;
         long nanoseconds = end_time.tv_nsec - start_time.tv_nsec;
         long total_microseconds = (seconds * 1e6) + (nanoseconds / 1e3);
-        printf("%s: Avg Time: %ld microseconds\n", name, total_microseconds / runs);
-        printf("%s: %ld Kb RAM usage\n", name, get_peak_mem_usage());
         long end = read_energy();
         long microjoules = end - start;
-        printf("Energy used: %ld microjoules\n", microjoules / runs);
+        printf("%s: %ld microseconds\n", name, total_microseconds / runs);
+        printf("%s: %ld Kb peak RAM\n", name, get_peak_mem_usage());
+        printf("%s: %ld microjoules\n", name, microjoules / runs);
         exit(0);
     }
     else
