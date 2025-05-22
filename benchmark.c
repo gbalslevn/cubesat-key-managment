@@ -246,7 +246,7 @@ static int ecdsa_test(void)
 	int code = RLC_ERR;
 	bn_t d, r, s;
 	ec_t q;
-	uint8_t m[5] = {0, 1, 2, 3, 4}, h[RLC_MD_LEN];
+	uint8_t h[RLC_MD_LEN];
 
 	bn_null(d);
 	bn_null(r);
